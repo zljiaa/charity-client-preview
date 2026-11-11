@@ -2205,8 +2205,8 @@ document.querySelectorAll('[data-confirm-edit]').forEach(button=>button.addEvent
         function change(){const quantity=Math.max(1,Math.min(99,Number(sheet.dataset.quantity)+(index?1:-1)));sheet.dataset.quantity=String(quantity);sheet.querySelector('.quantity-stepper>b').textContent=quantity;updateCheckoutTotal(sheet);}
       };
     });
-    const span=sheet.querySelector('.sheet-close');const close=document.createElement('button');close.type='button';close.className='sheet-close';close.textContent='×';close.setAttribute('aria-label','关闭确认订单');close.onclick=()=>app.navigate('screen-sale-1');span.replaceWith(close);
-    sheet.closest('.phone').querySelector('.shade').onclick=()=>app.navigate('screen-sale-1');
+    const span=sheet.querySelector('.sheet-close');const close=document.createElement('button');close.type='button';close.className='sheet-close';close.textContent='×';close.setAttribute('aria-label','关闭确认订单');close.onclick=()=>app.back();span.replaceWith(close);
+    sheet.closest('.phone').querySelector('.shade').onclick=()=>app.back();
     // One available style is a selection, not another navigation target.
     all('.sku-options>span',sheet).forEach(span=>{span.setAttribute('role','radio');span.setAttribute('aria-checked','true');span.tabIndex=0;span.onclick=()=>span.setAttribute('aria-checked','true');span.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();span.click();}};});
   });
