@@ -68,3 +68,66 @@ body.association .resource-entry-dialog .dialog-foot{padding:10px 20px}
 .association .chart-reset{font-size:12px;white-space:nowrap;padding:4px 8px;border:1px solid var(--line);border-radius:3px}
 .association .chart-reset.is-filtered{background:#eaf4ef;border-color:#bdd9cb;color:var(--green)}
 @media(max-width:760px){.association .chart-filter-actions{gap:8px}.association .chart-filter-actions .tiny{font-size:10px}}
+
+/* Organization details follow the merchant workspace's continuous sections. */
+.association .org-back{margin-bottom:18px;font-size:12px}
+.association .org-page{overflow:visible}
+.association .org-section-nav{position:sticky;top:72px;z-index:5;display:flex;gap:26px;padding:0 24px;border-bottom:1px solid var(--line);background:#fff;border-radius:4px 4px 0 0;overflow-x:auto}
+.association .org-section-nav button{padding:18px 0 15px;white-space:nowrap;font-size:13px;border-bottom:2px solid transparent;color:#808a88}
+.association .org-section-nav button.active{border-bottom-color:var(--green);color:var(--green);font-weight:600}
+.association .org-sections{padding:0 24px 12px}
+.association .org-section{padding:22px 0;border-bottom:1px solid var(--line);scroll-margin-top:135px}
+.association .org-section:last-child{border-bottom:0}
+.association .org-section h2{font-size:15px;line-height:24px;margin-bottom:12px;font-weight:600}
+.association .org-info{margin:0}
+.association .org-info>div,.association .org-form-row{display:grid;grid-template-columns:190px minmax(0,1fr);align-items:start;gap:18px;padding:8px 0;font-size:13px;line-height:22px}
+.association .org-info dt,.association .org-form-row>span{color:#8a9490}
+.association .org-info dd{margin:0;color:#46554d;overflow-wrap:anywhere;white-space:pre-wrap}
+.association .org-section-note{font-size:12px;line-height:1.9;color:#8a9690;margin-bottom:10px}
+.association .org-material-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:13px;padding:8px 0}
+.association .org-material-row>span{color:#8a9490;min-width:190px}
+.association .org-material-row small{color:#9ba39e;font-size:11px}
+.association .org-empty{padding:8px 24px 24px;font-size:12px;color:#969e99}
+.association .org-form-row{align-items:center;max-width:860px}
+.association .org-form-row input:not([type=checkbox]),.association .org-form-row textarea{width:100%;min-width:0;border:1px solid var(--line);border-radius:3px;padding:9px 11px;background:#fff;color:#46554d;font-size:13px;line-height:20px}
+.association .org-form-row textarea{resize:vertical;min-height:84px}
+.association .org-form-row strong{font-weight:400;color:#46554d}
+.association .org-form-row input:disabled{background:#f6f7f6;color:#9da59f}
+.association .org-validity{display:flex;align-items:center;gap:18px}
+.association .org-validity input[type=date]{max-width:240px}
+.association .org-validity label{display:flex;align-items:center;gap:7px;white-space:nowrap;font-size:12px;color:#77867b}
+.association input[type=checkbox]{accent-color:var(--green)}
+.association .org-upload{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.association .org-upload>label{position:relative;overflow:hidden;padding:7px 12px;font-size:12px;cursor:pointer}
+.association .org-upload input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+.association .org-upload small{font-size:11px;color:#9aa39c}
+.association #org-upload-status{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;flex-basis:100%;overflow-wrap:anywhere}
+.association .org-consent{display:flex;align-items:center;gap:4px;flex-wrap:wrap;font-size:12px;color:#7c8980;margin:20px 0 10px}
+.association .org-consent label{display:flex;align-items:center;gap:7px}
+.association .org-demo-note{font-size:11px;color:#9ba59d;margin-bottom:16px}
+.association .org-form-actions{display:flex;align-items:center;gap:12px;padding:16px 0;flex-wrap:wrap}
+.association .org-form-error:empty{display:none}
+.association .org-form-error{font-size:12px;margin:12px 0;color:#b66b4b}
+.association .org-history{list-style:none;padding:0;margin:0;font-size:12px;color:#64776a;display:grid;gap:14px}
+.association .org-history li{display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+.association .org-history span{color:#9aa49c;font-variant-numeric:tabular-nums}
+.association .org-certificate-demo{border:3px double #b8c2b9;background:#fbfaf4;padding:30px;text-align:center;color:#5a6258;line-height:2}
+.association .org-certificate-demo h2{font-size:21px;margin:20px 0}
+.association .org-certificate-demo small,.association .org-certificate-demo>span{font-size:11px;color:#9b9e8d}
+.association .org-certificate-demo p{margin:15px 0}
+.association .org-material-image{display:block;width:100%;height:auto;max-height:65vh;object-fit:contain}
+.association .org-material-pdf{width:100%;height:62vh;border:1px solid var(--line)}
+@media(max-width:760px){
+ .association .org-section-nav{top:60px;padding:0 16px;gap:22px}
+ .association .org-section-nav button{padding:15px 0 12px;font-size:12px}
+ .association .org-sections{padding:0 16px 8px}
+ .association .org-section{padding:18px 0}
+ .association .org-info>div{grid-template-columns:112px minmax(0,1fr);gap:14px;font-size:12px;padding:7px 0}
+ .association .org-form-row{grid-template-columns:1fr;gap:7px;padding:9px 0;font-size:12px}
+ .association .org-validity{gap:12px}
+ .association .org-validity input[type=date]{max-width:190px}
+ .association .org-material-row>span{min-width:0;flex-basis:100%}
+ .association .org-form-actions{gap:8px}
+ .association .org-form-actions .btn{font-size:12px;padding:9px 12px}
+ .association .org-empty{padding:4px 16px 20px;line-height:1.8}
+}
