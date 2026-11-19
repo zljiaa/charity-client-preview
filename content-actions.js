@@ -2,7 +2,7 @@
 // Shared client actions for published examples and workbench previews.
 (() => {
  const style=document.createElement('style');
- style.textContent='.preview-registration{position:absolute;inset:0;z-index:120;background:#fff;display:flex;flex-direction:column}.preview-registration>header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #e8ebe4;flex:none}.preview-registration-content{flex:1;overflow:auto;min-height:0}.preview-registration .signup-summary{padding:18px 16px}.preview-registration h2{font-size:17px}.preview-registration .signup-summary p{margin-top:8px;font-size:12px;color:#7e8d73}.preview-registration select{flex:1;min-width:0;padding:10px 6px;border:1px solid #e8ebe4;border-radius:4px;background:#fff;font:inherit}.preview-registration textarea{flex:1;min-width:0;min-height:72px;margin:12px 0;padding:8px;border:1px solid #e8ebe4;border-radius:4px;font:inherit;resize:vertical}.preview-registration .signup-actions{padding-top:16px}';
+ style.textContent='.phone>.donation-shade[data-preview-donation]{z-index:130}.phone>.donation-sheet[data-preview-donation]{z-index:131}.phone>.heart-fortune-overlay[data-preview-donation]{z-index:140}.preview-registration{position:absolute;inset:0;z-index:120;background:#fff;display:flex;flex-direction:column}.preview-registration>header{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid #e8ebe4;flex:none}.preview-registration-content{flex:1;overflow:auto;min-height:0}.preview-registration .signup-summary{padding:18px 16px}.preview-registration h2{font-size:17px}.preview-registration .signup-summary p{margin-top:8px;font-size:12px;color:#7e8d73}.preview-registration select{flex:1;min-width:0;padding:10px 6px;border:1px solid #e8ebe4;border-radius:4px;background:#fff;font:inherit}.preview-registration textarea{flex:1;min-width:0;min-height:72px;margin:12px 0;padding:8px;border:1px solid #e8ebe4;border-radius:4px;font:inherit;resize:vertical}.preview-registration .signup-actions{padding-top:16px}';
  document.head.append(style);
  let current=null,closeDonation=()=>{},closeRegistration=()=>{};
  function renderGroup(root,p,status){
@@ -23,7 +23,7 @@
   const source=document.querySelector('.donation-sheet:not([data-preview-donation])');
   for(const selector of ['.donation-custom','.donation-presets','.donation-random-hint','.donation-error'])controls.append(source.querySelector(selector).cloneNode(true));
   controls.querySelectorAll('input').forEach(input=>{input.removeAttribute('name');input.setAttribute('aria-label','自定义捐赠金额');});
-  donation.append(controls);const value=donation.querySelectorAll('b')[1];
+  donation.append(controls);const value=donation.querySelectorAll('b')[1];value.dataset.conferenceSelectedAmount='';
   const picker=amountPicker(controls,phone,p,{onChange(amount,valid){value.textContent=valid?'¥'+amount.toFixed(2):'待选择金额';}});
   form.conferenceAmountPicker=picker;
   form.addEventListener('reset',()=>{picker.closeFortune();queueMicrotask(()=>conferenceAmounts(form,phone,p));},{once:true});
@@ -61,6 +61,7 @@
   const actions=document.createElement('div');actions.className='signup-actions';actions.innerHTML='<button type="button">返回详情</button><button type="submit"></button>';actions.lastElementChild.textContent=conference?'填写资料并捐赠':preview?'提交报名预览':'确认报名';form.append(actions);page.querySelector('.preview-registration-content').append(form);
   const background=[...phone.children],inert=background.map(node=>node.inert);
   const onKey=event=>{
+   if(phone.querySelector('.donation-sheet[data-preview-donation]'))return;
    if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();if(form.conferenceAmountPicker?.fortune)form.conferenceAmountPicker.closeFortune();else closeRegistration();}
    if(event.key==='Tab'){const root=form.conferenceAmountPicker?.fortune||page,items=[...root.querySelectorAll('button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled)')].filter(node=>!node.closest('[hidden]'));if(event.shiftKey&&document.activeElement===items[0]){event.preventDefault();items.at(-1)?.focus();}else if(!event.shiftKey&&document.activeElement===items.at(-1)){event.preventDefault();items[0]?.focus();}}
   };
@@ -91,7 +92,7 @@
   const custom=sheet.querySelector('.donation-custom input'),random=sheet.querySelector('.donation-random'),presetList=sheet.querySelector('.donation-presets'),error=sheet.querySelector('.donation-error');
   const note=sheet.querySelector('.donation-random-hint');
   let amount=Number(options.initialAmount)||presets[0]||0,fortune=null,drawSequence=0;
-  const surface=sheet.closest('[data-preview-registration],.signup-page')||sheet;let previousInert=false;
+  let surface=sheet,previousInert=false;
   custom.value=modes.includes('custom')&&amount&&!presets.includes(amount)?String(amount):'';custom.min='0.01';custom.step='0.01';custom.removeAttribute('max');
   custom.closest('label').hidden=!modes.includes('custom');custom.disabled=!modes.includes('custom');
   random.hidden=!modes.includes('random');random.disabled=!randomValid;
@@ -118,11 +119,15 @@
   random.addEventListener('click',()=>{
    if(!randomValid)return;
    const source=document.querySelector('.heart-fortune-overlay:not([data-preview-donation])');if(!source)return;
-   fortune=source.cloneNode(true);fortune.dataset.previewDonation='';fortune.hidden=false;previousInert=surface.inert;surface.inert=true;
+   fortune=source.cloneNode(true);fortune.dataset.previewDonation='';fortune.hidden=false;surface=sheet.closest('[data-preview-registration],.signup-page')||sheet;previousInert=surface.inert;surface.inert=true;
    fortune.querySelectorAll('[data-close-fortune]').forEach(button=>button.addEventListener('click',closeFortune));
    const manual=fortune.querySelector('.fortune-manual');manual.hidden=!modes.includes('custom');manual.addEventListener('click',()=>{closeFortune();custom.focus();});
    fortune.querySelector('.fortune-draw').addEventListener('click',draw);
    fortune.querySelector('.fortune-use').addEventListener('click',()=>{amount=Number(fortune.dataset.amount);custom.value=modes.includes('custom')?amount.toFixed(2):'';update();note.textContent='这次的心意是 ¥'+amount.toFixed(2);note.hidden=false;closeFortune();});
+   fortune.addEventListener('keydown',event=>{
+    if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();closeFortune();}
+    if(event.key==='Tab'){const items=[...fortune.querySelectorAll('button:not(:disabled)')].filter(node=>!node.closest('[hidden]'));if(event.shiftKey&&document.activeElement===items[0]){event.preventDefault();items.at(-1)?.focus();}else if(!event.shiftKey&&document.activeElement===items.at(-1)){event.preventDefault();items[0]?.focus();}}
+   });
    phone.append(fortune);draw();
   });
   update();
@@ -167,8 +172,8 @@
  renderGroup(document.getElementById('enrollment-success'),{},'待审核');
  window.ClientContentActions={
   renderGroup,conferenceAmounts,
-  set(phone,p,options={}){closeDonation();closeRegistration();current={phone,p,preview:!!options.preview};},
-  close(){closeDonation();closeRegistration();}
+  set(phone,p,options={}){closeDonation();closeRegistration();document.getElementById('conference-signup')?.conferenceAmountPicker?.closeFortune();current={phone,p,preview:!!options.preview};},
+  close(){closeDonation();closeRegistration();document.getElementById('conference-signup')?.conferenceAmountPicker?.closeFortune();}
  };
  // Keep the original standalone conference form behind the same donation gate.
  document.addEventListener('submit',event=>{

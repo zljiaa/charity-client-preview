@@ -437,10 +437,11 @@ body[data-role="merchant"] .merchant-page-shade.pe-stock-expanded{inset:0;z-inde
 #overlay .dialog:not(.merchant-page-panel):has(.person-permissions){width:min(1260px,96vw)}
 
 /* Always-visible organization and shop entries, with compact switch lists. */
-.sidebar .workspace-context{display:flex;flex-direction:column;gap:8px;margin:0 12px 18px;padding:0 0 16px;border-bottom:1px solid #e5eae7;min-width:0;flex:none}
-.context-picker{position:relative;min-width:0}
+.sidebar .workspace-context{position:relative;z-index:2;display:flex;flex-direction:column;gap:8px;margin:0 12px 18px;padding:0 0 16px;border-bottom:1px solid #e5eae7;min-width:0;flex:none}
+.context-picker{min-width:0}
 .context-picker>summary{display:block;list-style:none;padding:11px 10px;background:#fff;border:1px solid #dce5df;border-radius:8px;cursor:pointer;transition:background .15s,border-color .15s}
 .context-picker>summary::-webkit-details-marker{display:none}
+.context-picker>summary::after{content:none;display:none}
 .context-picker>summary:hover,.context-picker[open]>summary{background:#f5faf7;border-color:#94b6a4}
 .context-picker>summary:focus-visible{outline:2px solid var(--green);outline-offset:3px}
 .context-picker-caption{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:10px;line-height:1.5;color:#829087;margin-bottom:8px}
@@ -453,7 +454,7 @@ body[data-role="merchant"] .merchant-page-shade.pe-stock-expanded{inset:0;z-inde
 .context-shop-picker>summary{background:#f8faf9}
 .context-shop-picker .context-current-name{font-weight:500}
 .context-picker[open]{z-index:2}
-.context-picker-panel{position:absolute;top:calc(100% + 6px);left:0;z-index:3;width:300px;max-width:calc(100vw - 32px);background:#fff;border:1px solid #dfe7e2;border-radius:10px;box-shadow:0 8px 28px #203c2e1f;overflow:hidden}
+.context-picker-panel{position:absolute;top:calc(100% - 8px);left:0;z-index:3;width:300px;max-width:calc(100vw - 32px);background:#fff;border:1px solid #dfe7e2;border-radius:10px;box-shadow:0 8px 28px #203c2e1f;overflow:hidden}
 .context-picker-heading{display:flex;align-items:center;justify-content:space-between;padding:13px 14px 10px;color:#63736a;font-size:11px;font-weight:500}
 .context-picker-heading small{font-size:10px;color:#8a978f;font-weight:400}
 .context-picker-options{list-style:none;padding:0 6px 6px;margin:0;max-height:min(320px,40dvh);overflow-y:auto;overscroll-behavior:contain}

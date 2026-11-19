@@ -9,7 +9,7 @@
   'action-detail':{previewKind:'action',kind:'公益行动',template:'报名类',name:'周末阅读志愿者招募',amountModes:['preset','random','custom']},
   'activity-news':{template:'宣发类',name:'阅读活动回顾',amountModes:['preset','custom'],donationOptions:'10,30,50'},
   'action-news':{previewKind:'action',kind:'公益行动',template:'宣发类',name:'周末阅读行动回顾',amountModes:['random','custom'],drawMin:2,drawMax:20},
-  'screen-conference-0':{template:'捐赠参会类',name:'公益交流会 · 捐赠参会',amountModes:['preset','random','custom']},
+  'screen-conference-0':{template:'捐赠参会类',name:'公益交流会 · 预设金额捐赠参会',amountModes:['preset']},
   'conference-random':{template:'捐赠参会类',name:'公益交流会 · 随缘捐参会',amountModes:['random']},
   'conference-custom':{template:'捐赠参会类',name:'公益交流会 · 自定义金额捐赠参会',amountModes:['custom']},
   'conference-multiple':{template:'捐赠参会类',name:'公益交流会 · 三种金额任选',amountModes:['preset','random','custom']}
