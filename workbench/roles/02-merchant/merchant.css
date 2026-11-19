@@ -686,6 +686,13 @@ body[data-role="merchant"] .personnel-dialog #edit-form>.form-grid{grid-auto-row
 .permission-group-toggle{padding-bottom:2px;border-bottom:1px solid #e3e7e5;color:#187c60}
 .permission-role-choice{display:flex!important;flex-direction:row!important;align-items:center!important;gap:6px;margin:5px 0 0!important;font-size:12px;font-weight:400}
 .permission-role-choice select{width:126px;max-width:100%;height:28px;min-width:0;padding:2px 6px;font-size:12px}
+.permission-role-control{min-width:0}
+.permission-custom-name-field{display:flex;align-items:center;width:154px;max-width:100%;height:28px;margin-top:4px;border:1px solid #dfe5e1;border-radius:4px;overflow:hidden;background:#fff}
+.permission-custom-name-field[hidden]{display:none!important}
+.permission-custom-name-field>span{flex:none;padding:0 5px;background:#f7f8fa;font-size:12px;font-weight:400;line-height:28px;color:#7b8189}
+.permission-role-control .permission-custom-name{display:block;flex:1;min-width:0;width:0!important;height:26px;margin:0;padding:2px 5px;border:0;border-radius:0;font-size:12px;font-weight:400}
+.permission-role-control .permission-custom-name:focus{outline:none;box-shadow:none}
+.permission-custom-name-field:focus-within{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
 .permission-role-editor{width:100%;min-width:1040px;border-collapse:collapse}
 .permission-role-editor th,.permission-role-editor td{border:1px solid #e3e7e5;padding:10px;vertical-align:top}
 .personnel-dialog .person-permissions-scroll{min-width:0;max-width:100%;overflow:auto}

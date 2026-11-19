@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="640" viewBox="0 0 960 640">
+ <rect width="960" height="640" fill="#e9e5de"/>
+ <rect x="36" y="30" width="888" height="576" rx="12" fill="#f6f3ed"/>
+ <text x="68" y="82" font-family="sans-serif" font-size="25" fill="#343b37">退货验收 · 外包装破损</text>
+ <path d="M106 219 301 161 464 238 277 307Z" fill="#ccb08a"/>
+ <path d="M106 219 277 307 277 477 106 388Z" fill="#b8956a"/>
+ <path d="M277 307 464 238 464 409 277 477Z" fill="#d7bc95"/>
+ <path d="m155 302 26 19-17 23 30 24-19 27" stroke="#715239" stroke-width="9" fill="none"/>
+ <circle cx="177" cy="348" r="65" stroke="#c24136" stroke-width="4" fill="none"/>
+ <text x="480" y="565" text-anchor="middle" font-family="sans-serif" font-size="21" fill="#7c756b">验收图片 · 原型示例</text>
+</svg>

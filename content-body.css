@@ -1,0 +1,13 @@
+/* Shared article typography: editor paper and the actual client use this stylesheet. */
+.client-article-body{font-size:14px;line-height:1.9;overflow-wrap:anywhere;color:inherit}
+.client-article-body p,.client-article-body div{margin:0 0 1em;font-size:inherit;line-height:inherit;white-space:pre-wrap}
+.client-article-body h2{font-size:20px;line-height:1.6;margin:1.3em 0 .7em}
+.client-article-body h3{font-size:17px;line-height:1.6;margin:1.2em 0 .7em}
+.client-article-body img{display:block;width:100%;max-width:100%;height:auto;margin:16px auto;object-fit:contain}
+.client-article-body video{display:block;width:100%;max-width:100%;height:auto;min-height:180px;margin:16px auto;object-fit:contain;background:#18231e}
+.client-article-body figure{margin:16px 0}.client-article-body figcaption{font-size:12px;color:#85907e;text-align:center}
+.client-article-body ul,.client-article-body ol{padding-left:1.6em;margin:1em 0}.client-article-body li{margin:.35em 0}
+.client-article-body blockquote{margin:1em 0;padding:8px 14px;border-left:3px solid #2b6b57;background:#f5f8f2;color:#697761}
+.client-article-body a{color:#2b6b57;text-decoration:underline}.client-article-body hr{border:0;border-top:1px solid #e6e8df;margin:22px 0}
+
+.content-published-at{display:block;font-size:11px;font-weight:400;line-height:1.6;color:#929b8c;margin:-4px 0 14px}

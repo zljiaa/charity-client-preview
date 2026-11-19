@@ -1,0 +1,269 @@
+/* Shared organization workspaces: shell and basic controls aligned with the merchant workspace. */
+/* Basic details follow the shop label/value rows. */
+.basic-info-content>.kv{display:block;margin:0}
+.basic-info-content>.kv>div{display:grid;grid-template-columns:170px minmax(0,1fr);gap:16px;align-items:start;padding:10px 0}
+.basic-info-content>.kv dt{font-size:13px;line-height:22px;color:var(--muted);margin:0}
+.basic-info-content>.kv dd{font-size:13px;line-height:22px;min-width:0;margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:800px){
+ .basic-info-content>.kv>div{grid-template-columns:100px minmax(0,1fr);gap:8px;padding:8px 0}
+ .basic-info-content>.kv dt,.basic-info-content>.kv dd{font-size:12px;line-height:22px}
+}
+body:is([data-role="merchant"],[data-role="foundation"]){--bg:#f2f3f5;--ink:#30343b;--muted:#7b8189;--line:#e6e8eb;font-size:14px}
+body:is([data-role="merchant"],[data-role="foundation"]) .sidebar{width:200px;background:#fff;color:#555;border-right:1px solid var(--line)}
+body:is([data-role="merchant"],[data-role="foundation"]) .brand{height:64px;padding:0 20px;border-bottom:1px solid var(--line)}
+body:is([data-role="merchant"],[data-role="foundation"]) .brand-title{color:#17695e}body:is([data-role="merchant"],[data-role="foundation"]) .brand-sub{display:none}
+body:is([data-role="merchant"],[data-role="foundation"]) .brandmark{width:30px;height:33px}
+body:is([data-role="merchant"],[data-role="foundation"]) .scope{background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;margin:0 16px 14px;padding:18px 4px;color:#444}
+body:is([data-role="merchant"],[data-role="foundation"]) .scope .tiny{color:#888;font-size:11px}
+body:is([data-role="merchant"],[data-role="foundation"]) .nav-label{color:#9a9da2;padding-left:22px}
+body:is([data-role="merchant"],[data-role="foundation"]) .nav-item{border-radius:0;color:#50555c;font-size:14px;margin:0;width:100%;padding:14px 22px;gap:12px;border-left:3px solid transparent}
+body:is([data-role="merchant"],[data-role="foundation"]) .nav-item:hover{background:#f7f8f9}
+body:is([data-role="merchant"],[data-role="foundation"]) .nav-item.active{color:var(--green);background:#eff7f4;border-left-color:var(--green);padding-left:22px}
+body:is([data-role="merchant"],[data-role="foundation"]) .nav-item .count{background:#e5f1ed;color:var(--green)}
+body:is([data-role="merchant"],[data-role="foundation"]) .prototype-controls{color:#959ba0;border-color:var(--line);padding:14px 18px}
+body:is([data-role="merchant"],[data-role="foundation"]) .prototype-controls select{background:#fff;border:1px solid var(--line);color:#555}
+body:is([data-role="merchant"],[data-role="foundation"]) .sidebar-foot{color:#a1a5aa;border-color:var(--line);padding:14px 18px}
+body:is([data-role="merchant"],[data-role="foundation"]) .workspace{margin-left:200px}
+body:is([data-role="merchant"],[data-role="foundation"]) .topbar{height:64px;padding:0 24px;z-index:75}
+body:is([data-role="merchant"],[data-role="foundation"]) .main{max-width:none;padding:22px 24px 32px}
+body:is([data-role="merchant"],[data-role="foundation"]) .page-head .eyebrow,body:is([data-role="merchant"],[data-role="foundation"]) .page-head .description{display:none}
+body:is([data-role="merchant"],[data-role="foundation"]) h1{font-size:23px;letter-spacing:0;font-weight:600}
+body:is([data-role="merchant"],[data-role="foundation"]) .page-head{margin-bottom:18px}
+body:is([data-role="merchant"],[data-role="foundation"]) .card{border-radius:4px;border:0}
+body:is([data-role="merchant"],[data-role="foundation"]) .btn{border-radius:3px;font-size:13px;min-height:34px;padding:7px 15px}
+body:is([data-role="merchant"],[data-role="foundation"]) .field{font-size:13px;color:#555}
+body:is([data-role="merchant"],[data-role="foundation"]) .field input,body:is([data-role="merchant"],[data-role="foundation"]) .field select{height:34px;border-radius:3px;font-size:13px}
+body:is([data-role="merchant"],[data-role="foundation"]) .link{font-size:13px}
+body:is([data-role="merchant"],[data-role="foundation"]) .tabs{gap:26px;padding:0 20px}
+body:is([data-role="merchant"],[data-role="foundation"]) .tab{font-size:14px;padding:15px 0 12px}
+.merchant-list-head{justify-content:flex-start;flex-wrap:wrap;gap:18px}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel){margin:0;border-radius:3px;box-shadow:0 10px 40px #0003;display:flex;flex-direction:column;overflow:hidden;max-height:calc(100dvh - 48px)}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel)>.dialog-head{flex-shrink:0;padding:16px 24px;border-bottom:1px solid #eee}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel)>.dialog-head h2{font-size:17px;font-weight:500;line-height:1.6}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel)>.dialog-body{min-height:0;overflow:auto;padding:20px 24px;font-size:13px}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel)>.dialog-body:has(>#edit-form){padding:0;display:flex;overflow:hidden}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel) #edit-form{display:flex;flex-direction:column;width:100%;min-height:0;overflow:hidden}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel) #edit-form>.form-grid{padding:20px 24px;min-height:0;overflow:auto;gap:18px}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel) .dialog-foot{flex-shrink:0;background:#fff;justify-content:center;padding:16px 24px;gap:12px;border-top:1px solid #eee}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel) .dialog-foot>[data-action=close]{order:2}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel) .btn{border-radius:3px;min-width:80px}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel) .icon-btn{min-width:32px}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel) .form-grid input,body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel) .form-grid select,body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel) .form-grid textarea{border-radius:3px;padding:8px 10px;background:#fff;font-size:13px}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel) .form-grid label{color:#60666d}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel) .hint{border-radius:2px;background:#f6faf8;font-size:12px;line-height:1.8;padding:10px 14px}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel) #form-error{margin:0;padding:0 24px 12px;flex-shrink:0;min-height:0}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog:not(.merchant-page-panel) #form-error:empty{display:none}
+body[data-role="foundation"] .stat{border-radius:4px;border:0}
+body[data-role="foundation"] table{font-size:13px}
+body[data-role="foundation"] th{background:#f7f8fa;color:#60666d;font-size:12px;padding:13px 16px}
+body[data-role="foundation"] td{padding:14px 16px}
+body[data-role="foundation"] .filters{background:#f7f8fa;margin:16px 20px;padding:16px;border-radius:3px}
+body[data-role="foundation"] .filters .field.grow{min-width:0}
+body[data-role="foundation"] .quick-chip,body[data-role="foundation"] .form-grid input,body[data-role="foundation"] .form-grid select,body[data-role="foundation"] .form-grid textarea{border-radius:3px}
+body[data-role="foundation"] .card-head{padding:18px 20px 0}
+body[data-role="foundation"] .card-body{padding:20px}
+body[data-role="foundation"] .drawer{border-radius:0}
+body[data-role="foundation"] .dialog-foot{flex-wrap:wrap}
+@media(min-width:1650px){body:is([data-role="merchant"],[data-role="foundation"]) .main{padding-top:22px}}
+@media(max-width:800px){body:is([data-role="merchant"],[data-role="foundation"]) .workspace{margin-left:0}body:is([data-role="merchant"],[data-role="foundation"]) .sidebar{width:200px;z-index:90}body:is([data-role="merchant"],[data-role="foundation"]) .topbar{height:60px;padding:8px 12px;gap:8px}body:is([data-role="merchant"],[data-role="foundation"]) .main{padding:18px 12px}body[data-role="foundation"] .page-head h1{font-size:21px}body[data-role="foundation"] .dialog{max-height:calc(100dvh - 24px);width:100%;margin:0}body[data-role="foundation"] .dialog>.dialog-head{padding:14px 16px}body[data-role="foundation"] .dialog>.dialog-body{padding:16px}body[data-role="foundation"] .dialog #edit-form>.form-grid{padding:16px}body[data-role="foundation"] .dialog .dialog-foot{padding:12px 16px}body[data-role="foundation"] .dialog #form-error{padding:0 16px 12px}body[data-role="foundation"] .filters{margin:12px;padding:14px}body[data-role="foundation"] .card-body{padding:16px}}
+/* Foundation content editors retain their draft actions while the client preview follows scrolling. */
+body:is([data-role="merchant"],[data-role="foundation"]){background:var(--bg)}
+.sidebar .context-heading{color:#606971}
+.sidebar .context-heading small,.sidebar .context-name small,.sidebar .context-empty{color:#899198}
+.sidebar .context-node{color:#50555c}
+.sidebar .context-node:hover{background:#f7f8f9;color:#30343b}
+.sidebar .context-node:focus-visible{outline-color:var(--green)}
+.sidebar .context-org.selected,.sidebar .context-shop.selected{background:#eff7f4;color:var(--green);border-color:#dbeae3}
+.sidebar .context-current{color:var(--green)}
+.sidebar .context-shops,.sidebar .context-shops>li:before{border-color:#d9e3dd}
+body[data-role="foundation"] #overlay>.overlay-shade{z-index:100}
+body[data-role="foundation"] .dialog.content-editor{width:min(1200px,100%);height:calc(100dvh - 48px);max-width:1200px}
+body[data-role="foundation"] .content-editor>.dialog-body{padding:0;display:flex;overflow:hidden;flex:1;min-height:0}
+body[data-role="foundation"] .content-editor #edit-form{flex:1;min-width:0}
+.content-editor-layout{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:24px;padding:20px 24px;min-height:0;overflow:auto;align-items:start;background:#f2f3f5}
+.content-editor-layout>.form-grid{padding:20px;background:#fff;border-radius:4px;min-width:0;gap:18px}
+.content-editor-layout>.form-grid>label{min-width:0}
+.content-editor-layout>.form-grid>.section-title{grid-column:1/-1}
+.content-editor-layout textarea{min-height:110px}
+.article-editor{border:1px solid #e0e5e2;border-radius:4px;overflow:hidden;min-width:0;background:#f6f7f8}
+.article-editor-heading{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;background:#fff;border-bottom:1px solid #e7ebe8}
+.article-editor-heading strong{font-size:14px;font-weight:600}.article-editor-heading span{font-size:11px;color:#929b96}
+.article-toolbar{display:flex;align-items:center;gap:4px;flex-wrap:wrap;padding:9px 10px;background:#fafbfa;border-bottom:1px solid #e4e9e5}
+.article-toolbar button{min-width:28px;min-height:28px;border:0;border-radius:3px;padding:4px 7px;background:transparent;color:#4e5852;cursor:pointer;font:12px inherit}
+.article-toolbar button:hover,.article-toolbar button:focus-visible{background:#e5efea;color:#17695e}.article-toolbar button[data-rich-command=bold]{font-weight:700}.article-toolbar button[data-rich-command=italic]{font-style:italic}.article-toolbar button[data-rich-command=underline]{text-decoration:underline}
+.article-toolbar button[aria-pressed=true]{background:#dceee4;color:#17695e;box-shadow:inset 0 0 0 1px #98beac}
+.article-toolbar button:is([data-rich-command=undo],[data-rich-command=redo]){display:inline-flex;align-items:center;justify-content:center;flex:none;width:30px;height:30px;padding:6px;color:#59645e}
+.article-toolbar button:is([data-rich-command=undo],[data-rich-command=redo]) svg{display:block;width:18px;height:18px;flex:none}
+.article-toolbar button[data-rich-media]{background:#e8f4ed;color:#17695e;padding:5px 10px}
+body[data-role=foundation] .article-toolbar select{width:auto;min-width:88px;max-width:100%;height:28px;padding:3px 28px 3px 8px!important;font-size:12px!important}
+.article-paper{padding:20px 12px}.article-editable{width:100%;max-width:390px;min-height:390px;margin:0 auto;padding:24px 18px;background:#fff;box-shadow:0 2px 8px #18382909;outline:none;color:#344138;box-sizing:border-box}
+.article-editable:focus{box-shadow:0 0 0 1px #8db4a0}.article-editable:empty:before{content:attr(data-placeholder);color:#a7afa8;pointer-events:none}
+.article-editor-foot{display:flex;justify-content:space-between;gap:10px;padding:9px 12px;color:#919992;font-size:11px;border-top:1px solid #e7ebe8}
+.article-editor [hidden]{display:none!important}.article-editor[data-loading=true] .article-editor-foot{color:#17695e}
+@media(max-width:800px){.article-paper{padding:10px 6px}.article-editable{padding:18px 12px;min-height:320px}.article-editor-foot{flex-wrap:wrap}.article-toolbar{gap:2px;padding:7px}.article-toolbar button{padding:4px}}
+.content-editor-layout .hint{margin-bottom:0}
+.content-editor-layout input[type=file]{max-width:100%;font-size:12px!important}
+.content-editor-layout .media-preview{display:flex;flex-wrap:wrap;gap:8px;max-width:100%}
+.content-editor-layout .media-preview img{max-width:100%;width:72px;height:72px;object-fit:cover}
+.content-mobile-preview{position:sticky;top:0;width:300px;max-width:100%;min-width:0;border:1px solid #e4e7e5;background:#f8f9fa;border-radius:6px;padding:12px}
+.content-preview-viewport{width:274px;max-width:100%;height:594px;overflow:hidden;margin:auto}
+.content-mobile-preview .pe-client-frame{width:390px;max-width:none;transform:scale(.7);transform-origin:top left}
+.content-editor .dialog-foot{background:#fff}
+@media(max-width:1100px){.content-editor-layout{grid-template-columns:minmax(0,1fr)}.content-mobile-preview{position:static;justify-self:center}}
+@media(max-width:800px){body[data-role="foundation"] .dialog.content-editor{height:calc(100dvh - 24px);width:100%;margin:0}.content-editor-layout{padding:12px;gap:16px}.content-editor-layout>.form-grid{padding:16px}.content-editor-layout .form-grid{grid-template-columns:minmax(0,1fr)}body[data-role="foundation"] .content-editor>.dialog-head{flex-wrap:wrap;gap:8px}body[data-role="foundation"] .content-editor>.dialog-head h2{flex:1;min-width:0;font-size:16px}body[data-role="foundation"] .content-editor .dialog-foot{gap:8px}body[data-role="foundation"] .content-editor .dialog-foot .btn{min-width:0}}
+
+/* Reuse the product media tiles and upload card for project media. */
+.project-carousel-editor{min-width:0}
+.project-carousel-editor .pe-field-note{margin:8px 0 12px}
+.project-carousel-item{outline-offset:3px}
+.project-carousel-item video{display:block;width:100%;height:100%;object-fit:cover;background:#18231e}
+.project-carousel-editor .pe-upload{flex-shrink:0}
+.project-video-badge{position:absolute;right:4px;bottom:30px;padding:2px 5px;border-radius:3px;background:#18231ecc;color:#fff;font-size:10px;pointer-events:none}
+.project-media-lightbox{max-width:min(90vw,800px);max-height:90vh;padding:18px;border:0;border-radius:8px}
+.project-media-lightbox::backdrop{background:#18231e99}
+.project-media-lightbox>img,.project-media-lightbox>video{display:block;max-width:100%;max-height:70vh;margin:0 auto 14px}
+
+/* Organization payment editor: keep field guidance next to its input. */
+.organization-payment-dialog .form-grid p{margin:0}
+.organization-payment-dialog .form-grid label .local-file-note{margin:0;color:#6b7280;font-size:11px}
+.organization-payment-dialog #payment-bank-error{margin:0;min-height:3.2em;line-height:1.6}
+.organization-payment-dialog [aria-invalid="true"]+#payment-bank-error{color:#b65b4d}
+.organization-payment-dialog [aria-invalid="true"]{border-color:#b65b4d}
+
+/* Organization edits share one page and conditional verification. */
+.organization-change-summary{margin:0 0 16px;padding:12px 16px;background:#f0f7f3;border:1px solid #dce9e0;font-size:13px;line-height:1.7;color:#41644e}
+body:is([data-role="merchant"],[data-role="foundation"]) .overlay-shade.organization-editor-shade{position:fixed;inset:var(--workspace-header-height,80px) 0 0 200px;z-index:70;padding:0;display:block;background:var(--bg)}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog.organization-editor-page{margin:0;width:100%;max-width:none;height:100%;max-height:none;border:0;border-radius:0;box-shadow:none;background:var(--bg);display:flex;flex-direction:column;overflow:hidden}
+body:is([data-role="merchant"],[data-role="foundation"]) .organization-editor-page>.dialog-head{flex-shrink:0;display:flex;gap:24px;padding:18px 24px;background:#fff;border-bottom:1px solid var(--line)}
+.organization-editor-page>.dialog-head h2{flex:1;order:1;font-size:20px}
+.organization-editor-page>.dialog-head .merchant-page-back{order:0;white-space:nowrap}
+body:is([data-role="merchant"],[data-role="foundation"]) .organization-editor-page>.dialog-body{padding:0;flex:1;min-height:0;display:flex;overflow:hidden}
+.organization-editor-page #edit-form{display:flex;flex-direction:column;width:100%;min-height:0;overflow:hidden}
+body:is([data-role="merchant"],[data-role="foundation"]) .organization-editor-page #edit-form>.form-grid{padding:0;display:flex;flex-direction:column;gap:0;flex:1;min-height:0;overflow:hidden}
+.organization-editor-nav{flex-shrink:0;display:flex;gap:28px;padding:0 24px;background:#fff;border-bottom:1px solid var(--line);overflow-x:auto}
+.organization-editor-nav .tab{white-space:nowrap}
+.organization-editor-sections{flex:1;min-height:0;overflow:auto;padding:20px 24px;position:relative;scroll-behavior:auto}
+.organization-editor-section{background:#fff;border:1px solid var(--line);padding:24px;margin-bottom:20px;scroll-margin-top:0}
+.organization-editor-section:last-child{min-height:100%}
+.organization-editor-section>h2{font-size:16px;margin:0 0 24px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.organization-editor-section>label{display:grid;grid-template-columns:170px minmax(0,600px);align-items:center;gap:16px;margin-bottom:20px}
+.organization-editor-section>label input,.organization-editor-section>label textarea{width:100%;min-width:0}
+.organization-editor-page .subject-edit-group{padding:0 0 20px;margin:0 0 24px;border-bottom:1px solid var(--line)}
+.organization-editor-page .subject-edit-group:last-child{padding:0;margin:0;border:0}
+.organization-editor-page .subject-edit-group h2{font-size:14px;margin:0 0 18px}
+.organization-editor-page .subject-edit-row{max-width:900px}
+.organization-payment-summary{margin-bottom:24px}
+.organization-editor-page #form-error:empty{display:none}
+.organization-editor-page #form-error{padding:8px 24px;background:#fff;flex-shrink:0}
+.organization-editor-page #edit-form>.dialog-foot{margin:0;flex-shrink:0;display:flex;gap:12px;justify-content:center;padding:16px 24px;background:#fff;border-top:1px solid var(--line)}
+body:is([data-role="merchant"],[data-role="foundation"]) .dialog.organization-submit-dialog{width:min(720px,calc(100vw - 24px));max-width:100%}
+.organization-editor-note{margin:0;color:#7a8188;font-size:12px;line-height:1.7}
+@media(max-width:800px){body:is([data-role="merchant"],[data-role="foundation"]) .overlay-shade.organization-editor-shade{left:0}.organization-editor-page>.dialog-head h2{font-size:17px}.organization-editor-sections{padding:12px}.organization-editor-section{padding:16px}.organization-editor-section>label{grid-template-columns:1fr;gap:8px}.organization-editor-nav{padding:0 16px;gap:22px}}
+.organization-sms-row{display:flex;align-items:flex-end;gap:12px}
+.organization-sms-row>label{flex:1;min-width:0}
+.organization-submit-dialog .table-wrap{max-height:240px;overflow:auto}
+.organization-submit-dialog td{overflow-wrap:anywhere;white-space:normal}
+@media(max-width:600px){body[data-role="merchant"] .organization-qualification-dialog .subject-edit-row,body[data-role="merchant"] .organization-qualification-dialog .subject-edit-row>label{grid-template-columns:minmax(0,1fr);gap:4px}body[data-role="merchant"] .organization-qualification-dialog .subject-identity-uploads{gap:10px}.organization-sms-row{gap:8px}.organization-change-summary{padding:10px 12px}}
+
+@media(max-width:600px){body[data-role="merchant"] .organization-editor-page .subject-edit-row,body[data-role="merchant"] .organization-editor-page .subject-edit-row>label{grid-template-columns:minmax(0,1fr);gap:8px}body[data-role="merchant"] .organization-editor-page .subject-edit-row>label{grid-column:auto}.organization-editor-page .subject-identity-uploads{flex-wrap:wrap}}
+
+/* Organization confirmation uses one footer and aligned verification controls. */
+.organization-submit-dialog #organization-confirm-form{display:flex;flex-direction:column;gap:14px;font-size:13px;line-height:1.7}
+.organization-submit-dialog #organization-confirm-form>p{margin:0}
+.organization-submit-dialog #organization-confirm-form>.tiny{margin-top:-8px}
+.organization-submit-dialog #organization-confirm-form>.table-wrap{flex-shrink:0}
+.organization-submit-dialog .organization-sms-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end}
+.organization-submit-dialog .organization-sms-row>label{display:flex;flex-direction:column;gap:8px;margin:0;color:var(--muted);font-size:13px}
+.organization-submit-dialog .organization-sms-row input{width:100%;min-width:0;height:36px;border:1px solid #dfe4e2;border-radius:3px;padding:8px 10px;font:inherit;color:var(--ink)}
+.organization-submit-dialog .organization-sms-row .btn{height:36px;white-space:nowrap;padding:7px 14px}
+.organization-submit-dialog #organization-confirm-form>.checkbox{display:flex;align-items:center;gap:8px;margin:0;font-size:13px}
+.organization-submit-dialog #organization-confirm-form>.checkbox input{width:15px;height:15px;flex-shrink:0;margin:0}
+.organization-submit-dialog #organization-confirm-error:empty{display:none}
+.organization-submit-dialog #organization-confirm-error{margin:0;padding:0}
+.organization-submit-dialog>.dialog-foot{display:flex;justify-content:center;align-items:center;gap:12px}
+@media(max-width:600px){.organization-submit-dialog .organization-sms-row{gap:8px}.organization-submit-dialog .organization-sms-row .btn{padding:7px 10px}.organization-submit-dialog #organization-confirm-form{gap:12px}}
+
+.organization-submit-dialog table{border:1px solid var(--line)}
+.organization-submit-dialog tbody tr:last-child td{border-bottom:1px solid var(--line)}
+
+/* Keep each donation choice beside its own configuration. */
+.donation-settings{display:grid;gap:8px;min-width:0}
+.donation-settings-label{margin:0 0 2px;font-size:13px;color:var(--ink)}
+.donation-settings-label>span{margin-left:8px;color:var(--muted);font-size:12px}
+.donation-option{border:1px solid #e1e6e3;border-radius:6px;background:#fff;overflow:hidden;transition:border-color .15s,background .15s}
+.donation-option:hover{border-color:#a6c4b5}
+.donation-option.is-selected{border-color:#7eaf98;background:#f8fbf9}
+.donation-option-heading{display:flex!important;flex-direction:row!important;align-items:center;gap:10px!important;padding:12px;margin:0;cursor:pointer}
+.donation-option-heading>input[type=checkbox]{width:16px!important;height:16px;margin:0;flex:none;accent-color:var(--green)}
+.donation-option-heading>span{display:flex;align-items:center;flex-wrap:wrap;gap:4px 12px;min-width:0}
+.donation-option-heading strong{font-size:14px;font-weight:600;color:var(--ink)}
+.donation-option-heading small{font-size:12px;color:var(--muted);line-height:1.6}
+.donation-option-fields{padding:0 12px 12px 38px;gap:10px;min-width:0}
+.donation-option-fields:empty{padding:0}
+.donation-option-fields>label{min-width:0;gap:5px}
+.donation-option-fields[data-donation-inputs=preset]>label,.donation-option-fields>p{grid-column:1/-1}
+.donation-option-fields>p{margin:0}
+@media(max-width:600px){.donation-option-fields{padding:0 12px 12px;grid-template-columns:minmax(0,1fr)}.donation-option-fields:empty{padding:0}}
+
+.organization-member-actions{display:inline-flex;align-items:center;gap:16px;white-space:nowrap}
+
+.registration-settings{margin:0;padding:14px 16px 16px;border:1px solid var(--line,#e1e6e3);border-radius:8px;min-width:0}
+.registration-settings>legend{padding:0 6px;font-size:14px;font-weight:600;color:var(--ink)}
+.registration-settings-hint{margin:12px 0 8px;color:var(--muted);font-size:12px}
+.registration-options{display:flex;flex-wrap:wrap;gap:8px}
+.registration-options>label{display:flex!important;flex-direction:row!important;align-items:center;gap:8px!important;margin:0;padding:8px 12px;border:1px solid #e1e6e3;border-radius:6px;cursor:pointer}
+.registration-options>label:has(input:checked){border-color:#7eaf98;background:#f8fbf9}
+.registration-options input[type=checkbox]{width:16px!important;height:16px;margin:0;accent-color:var(--green)}
+
+.registration-options>label.is-fixed{background:#f2f3f2;border-color:#e1e6e3;color:#969d97;cursor:default}
+.registration-options>label.is-fixed input{opacity:.5}
+
+/* Size short editor controls by content, shared by merchant and foundation forms. */
+body:is([data-role="merchant"],[data-role="foundation"]) #edit-form :is(.form-field>input,.form-select>select){width:100%;max-width:360px;min-width:0;align-self:start;justify-self:start}
+body:is([data-role="merchant"],[data-role="foundation"]) #edit-form .form-field>input:is([type="tel"],[type="password"],[type="date"],[type="datetime-local"],[name="contactName"],[name="contactPhone"],[name="entrantName"],[name="bank"],[name="sms"],[name="meetingNumber"],[name="meetingPassword"]){max-width:240px}
+body:is([data-role="merchant"],[data-role="foundation"]) #edit-form .form-field>input[type="number"]{max-width:160px}
+body:is([data-role="merchant"],[data-role="foundation"]) #edit-form .form-field>input[name="collaboratorName"]{max-width:320px}
+body:is([data-role="merchant"],[data-role="foundation"]) #edit-form .form-field>input:is([name="address"],[name="location"],[name="meetingUrl"]){max-width:480px}
+
+.registration-skills-config{margin-top:12px;gap:12px}
+.registration-skills-config[hidden],.registration-skills-config [hidden]{display:none!important}
+
+.content-editor #template-fields .form-field[hidden]{display:none!important}
+.skills-options-label{display:block;font-size:13px;margin-bottom:8px}
+.skills-option-tags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.skills-option-tag{display:inline-flex;align-items:center;gap:8px;padding:5px 10px;background:#edf5f0;color:#35644d;border:1px solid #d5e5db;border-radius:6px;font-size:13px;max-width:100%;overflow-wrap:anywhere}
+.skills-option-tag>button{padding:0;border:0;background:none;color:#718478;font:inherit;font-size:18px;line-height:1;cursor:pointer}
+.skills-option-add{display:flex;align-items:center;gap:8px}
+.skills-option-add>input{width:240px;min-width:0;max-width:100%;flex:0 1 240px}
+.skills-option-add>.btn{flex:none}
+
+/* Keep the logo label, upload feedback and rules in one complete form row. */
+body[data-role="merchant"] #edit-form .shop-logo-upload{grid-column:1/-1;display:grid;grid-template-columns:100px minmax(0,1fr);align-items:start;gap:14px;min-width:0}
+body[data-role="merchant"] #edit-form .shop-logo-field-title{padding-top:6px;color:var(--muted)}
+body[data-role="merchant"] #edit-form .shop-logo-field-content{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px 24px;min-width:0}
+body[data-role="merchant"] #edit-form .shop-logo-picker{position:relative;display:block;width:160px;height:160px;flex:0 0 160px;margin:0;overflow:hidden;border:1px solid var(--line);border-radius:5px;background:#fff;cursor:pointer}
+body[data-role="merchant"] #edit-form .shop-logo-picker input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;z-index:2}
+body[data-role="merchant"] #edit-form .shop-logo-picker:focus-within{outline:2px solid #2563eb;outline-offset:3px}
+body[data-role="merchant"] #edit-form .shop-logo-picker .media-preview{display:flex;align-items:center;justify-content:center;width:100%;height:calc(100% - 32px);margin:0}
+body[data-role="merchant"] #edit-form .shop-logo-picker .media-preview:empty:after{content:'上传图片';color:#999;font-size:14px}
+body[data-role="merchant"] #edit-form .shop-logo-picker .media-preview img{display:block;width:100%;height:100%;max-width:none;max-height:none;object-fit:contain;margin:0;border:0;border-radius:0}
+body[data-role="merchant"] #edit-form .shop-logo-placeholder{color:#999;font-size:14px}
+body[data-role="merchant"] #edit-form .shop-logo-change{position:absolute;bottom:0;left:0;right:0;padding:7px;text-align:center;background:rgba(0,0,0,.62);color:#fff;font-size:14px;pointer-events:none}
+body[data-role="merchant"] #edit-form .shop-logo-actions{display:flex;flex-direction:column;align-items:flex-start;gap:10px;padding-bottom:2px}
+body[data-role="merchant"] #edit-form .shop-logo-actions button{margin:0;padding:0;min-height:0;font-size:14px;line-height:1.6;text-align:left}
+body[data-role="merchant"] #edit-form .shop-logo-upload .local-file-note{flex-basis:100%;max-width:600px;margin:0;line-height:1.6;overflow-wrap:anywhere}
+.shop-name-logo-preview{text-align:center}
+.shop-name-logo-preview img{display:block;width:200px;height:200px;max-width:100%;margin:8px auto 16px;border:1px solid var(--line);border-radius:4px}
+.shop-name-logo-preview p{overflow-wrap:anywhere}
+@media(max-width:480px){body[data-role="merchant"] #edit-form .shop-logo-upload{grid-template-columns:1fr;gap:8px}body[data-role="merchant"] #edit-form .shop-logo-field-content{column-gap:14px}}
+
+
+.shop-logo-basic{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px 28px}
+.shop-logo-basic-card{position:relative;display:block;width:160px;height:160px;padding:0;overflow:hidden;border:1px solid var(--line);border-radius:5px;background:#fff;cursor:pointer}
+.shop-logo-basic-image{display:flex;align-items:center;justify-content:center;width:100%;height:calc(100% - 32px)}
+.shop-logo-basic-image img{display:block;width:100%;height:100%;object-fit:contain}
+.shop-logo-basic-card .shop-logo-change{position:absolute;bottom:0;left:0;right:0;padding:7px;background:rgba(0,0,0,.62);color:#fff;font-size:14px;text-align:center}
+.shop-logo-basic>.shop-logo-rules-link{align-self:flex-end;margin-bottom:0;font-size:14px}
+
+.registration-group{margin-top:16px;padding-top:16px;border-top:1px solid var(--line,#e1e6e3)}
+.registration-group [data-group-qr-preview] img,.registration-group-detail>img{display:block;object-fit:contain;margin-top:12px}
