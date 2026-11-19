@@ -117,7 +117,7 @@ window.WorkbenchData.customerService={
   {id:'kf_demo_home',name:'家居客服',url:'https://work.weixin.qq.com/kf/demo-home',servicers:['王宁'],enabled:true}
  ]
 };
-window.WorkbenchData.shops.find(s=>s.id==='S001').customerServiceId='kf_demo_platform';
+window.WorkbenchData.shops.find(s=>s.id==='S001').customerServiceId='kf_demo_culture';
 window.WorkbenchData.products.find(p=>p.id==='P001').customerServiceId='kf_demo_culture';
 window.WorkbenchData.products.find(p=>p.id==='P002').customerServiceId='kf_demo_home';
 
@@ -313,7 +313,7 @@ window.WorkbenchData.paymentCollection={id:'PLATFORM',name:'平台公司'};
  const opened=D.shops.find(s=>s.id==='S002');
  D.applications.push(
   {...applicant,id:'AP-SHOP-DEMO-001',org:'M001',type:'店铺开通',object:opened.id,title:opened.name,status:'已通过',stage:'已开通',date:'2026-11-01 14:20:00',baseline:{},snapshot:clone(opened),approvalNodes:[{name:'校验通过，店铺已开通',status:'已完成',time:'2026-11-01 14:20:00',operator:'系统'}]},
-  {...applicant,id:'AP-SHOP-DEMO-002',org:'M001',type:'店铺开通',object:'SHOP-DEMO-001',title:'善集文创礼品店（示例）',status:'草稿',stage:'未提交',date:'2026-11-02 11:00:00',baseline:{},snapshot:{name:'善集文创礼品店（示例）',category:'文具 / 家居',intro:'以文创好物传递善意。',customerServiceId:'kf_demo_platform',qualificationSource:'organization',qualificationCategory:'文具'}}
+  {...applicant,id:'AP-SHOP-DEMO-002',org:'M001',type:'店铺开通',object:'SHOP-DEMO-001',title:'善集文创礼品店（示例）',status:'草稿',stage:'未提交',date:'2026-11-02 11:00:00',baseline:{},snapshot:{name:'善集文创礼品店（示例）',category:'文具 / 家居',intro:'以文创好物传递善意。',customerServiceId:'kf_demo_culture',qualificationSource:'organization',qualificationCategory:'文具'}}
  );
 }
 

@@ -622,6 +622,7 @@ function customerServiceTest(id=''){
 function customerServiceDirectory(){
  if(!isMerchant||!currentShop())return;
  subdialog('客服账号与接待人员','<p>平台企业 ID：'+esc(CS.config().corpId)+'</p><p class="tiny muted">平台管理员在企业微信后台创建微信客服账号，并将负责此店铺的成员添加为接待人员。工作台每 5 分钟自动更新，填写账号 ID 提交时即时校验。</p>'+table(['客服名称','客服账号 ID（open_kfid）','接待人员（成员 UserID）','客服链接'],CS.accounts().filter(a=>CS.available(a)).map(a=>tr([esc(a.name),esc(a.id),esc(CS.staff(a)),esc(a.url)])),false),'关闭');
+ $('#secondary .dialog').classList.add('customer-directory-dialog');
 }
 function updateProductCustomerService(){const select=$('#pe-customer-service'),summary=$('#pe-customer-service-summary');if(select&&summary){const id=select.value.trim();summary.innerHTML=id&&!CS.account(id)?'提交时校验账号并读取客服名称、链接及接待人员。':customerServiceDescription({customerServiceId:id});}}
 function shopPage(){
@@ -636,7 +637,7 @@ function shopPage(){
  bodies['基本信息']=group('基础信息',row('店铺名称',s.name,edit('修改','name'))+row('店铺编号',s.id)+row('开店时间',s.openedAt||'2026-10-20')+row('店铺类型',s.kind)+row('主营类目',s.category,edit('修改','category'))+row('店铺 logo',s.logo?'<img class="shop-logo" src="'+esc(s.logo)+'" alt="店铺 logo">':'未上传','',true)+row('店铺简介',s.intro,edit(s.intro?'修改':'添加简介','intro')));
  {
   const a=CS.account(s.customerServiceId);
-  bodies['客服配置']=group('',row('企业名称',CS.config().enterpriseName)+row('企业 ID（CorpID）',CS.config().corpId)+row('默认客服账号',a?.name||'未配置',edit('修改','service')+' '+btn('测试咨询','customer-service-test','','link'))+row('客服账号 ID（open_kfid）',a?.id)+row('客服链接',a?.url)+row('接待人员（成员 UserID）',a?CS.staff(a):'未配置')+row('兜底客服',CS.account(CS.config().fallbackId)?.name||'未配置')+row('自动同步',CS.syncLabel()),'<p class="tiny muted shop-customer-note">各店铺共用平台企业 ID。平台在企业微信后台创建各店铺客服账号并添加接待成员，填写账号 ID 后提交校验；商品可另行填写接待客服 ID。</p>'+btn('查看客服账号与接待人员','customer-service-directory','','link'))+group('退换货信息',row('退换货地址',s.returnAddress||D.products.find(p=>p.shop===s.id)?.returnAddress,edit('修改','return')));
+  bodies['客服配置']=group('',row('客服账号 ID（open_kfid）',s.customerServiceId||'未配置',a&&a.id!==CS.config().fallbackId?btn('测试咨询','customer-service-test','','link'):'')+row('客服链接',a?.url)+row('接待人员（成员 UserID）',a?CS.staff(a):'未配置'),'<p class="tiny muted shop-customer-note">各店铺共用平台企业 ID。平台在企业微信后台创建各店铺客服账号并添加接待成员，填写账号 ID 后提交校验；商品可另行填写接待客服 ID。</p>'+btn('查看客服账号与接待人员','customer-service-directory','','link'))+group('退换货信息',row('退换货地址',s.returnAddress||D.products.find(p=>p.shop===s.id)?.returnAddress,edit('修改','return')));
  }
  bodies['经营资质']=shopQualificationSection(s);
  bodies['捐赠协议']=shopDonationSection(s);
@@ -810,8 +811,8 @@ function shopModuleEditor(scope='all',application=null){
  let content='';
  if(includes('basic'))content+=group('basic',field('店铺名称','name',base.name)+field('主营类目','category',base.category)+field('店铺简介','intro',base.intro||'','textarea',true,true)+shopLogoUploadField('shopLogoFile','店铺 logo','300 × 300 像素，JPG、PNG、WebP，最大 2 MB。'));
  if(includes('qualifications'))content+=group('qualifications','<label class="full shop-module-inherit"><span>继承组织营业执照</span><span class="shop-module-switch-control"><input type="checkbox" role="switch" name="inheritOrganizationLicense"'+((base.inheritOrganizationLicense??base.operatingQualifications?.some(q=>q.source==='organization'))?' checked':'')+'><span class="shop-module-switch" aria-hidden="true"></span></span></label><div class="full" id="shop-module-qualifications"></div><button type="button" class="shop-module-add" id="shop-module-add-qualification"><span aria-hidden="true">＋</span> 添加经营资质</button>');
- if(includes('customer'))content+=group('customer','<div class="full shop-module-customer-account"><label for="shop-module-customer-id">默认客服账号 ID（open_kfid） <span class="required-tip">*</span></label><div class="shop-customer-input"><input id="shop-module-customer-id" name="customerServiceId" value="'+esc(base.customerServiceId||CS.config().fallbackId)+'" required autocomplete="off">'+btn('测试账号','customer-service-test','','btn')+'</div></div>'+field('退换货地址','returnAddress',base.returnAddress||'','textarea',true,true));
- if(includes('donation'))content+=group('donation',uploadField('原始协议文件','donationAgreementFile',base.donationAgreementFile,'.pdf,.doc,.docx,.png,.jpg,.jpeg','支持 PDF、Word、JPG、PNG，最大 20 MB')+field('每单捐协议正文','donationAgreement',base.donationAgreement||'','textarea',false,true));
+ if(includes('customer'))content+=group('customer','<div class="full shop-module-customer-account"><label for="shop-module-customer-id">客服账号 ID（open_kfid） <span class="required-tip">*</span></label><div class="shop-customer-input"><input id="shop-module-customer-id" name="customerServiceId" value="'+esc(base.customerServiceId||'')+'" required autocomplete="off">'+btn('测试账号','customer-service-test','','btn')+'</div></div>'+field('退换货地址','returnAddress',base.returnAddress||'','textarea',true,true));
+ if(includes('donation'))content+=group('donation',uploadField('原始协议文件','donationAgreementFile',base.donationAgreementFile,'.pdf,.doc,.docx,.png,.jpg,.jpeg','支持 PDF、Word、JPG、PNG，最大 20 MB')+field('每单捐协议正文（展示在客户端）','donationAgreement',base.donationAgreement||'','textarea',false,true));
  const qualificationRows=[];let qualificationIndex=0;
  const qualificationCategories=()=>[...new Set(String($('#edit-form [name=category]')?.value??base.category??'').split(/[/、,，]/).map(x=>x.trim()).filter(Boolean))];
  form('编辑'+labels[scope],content,(data,intent)=>{
@@ -841,9 +842,15 @@ function shopModuleEditor(scope='all',application=null){
   const error=submitApplication('店铺资料变更',shop,snapshot,intent);if(error)return error;replaceSavedApplication(saved);closeOverlay();render();toast(intent==='draft'?'店铺资料草稿已保存':'店铺资料变更已提交审批');
  },'提交审批',true);
  $('#overlay .dialog').classList.add('shop-module-editor');
+ if(scope==='customer')$('#overlay .dialog').classList.add('shop-customer-editor');
  let logoUpload,agreementUpload;
  if(includes('basic')){logoUpload=bindShopUploads(['shopLogoFile'],{},2,['png','jpg','jpeg','webp'],shopLogoImageIssue);uploads.push(logoUpload);const input=$('#edit-form [name=shopLogoFile]');input.dataset.shopName=base.name||'';if(base.logo)input.closest('label').querySelector('.media-preview').innerHTML='<img class="application-change-image" src="'+esc(base.logo)+'" alt="店铺 logo">';}
  if(includes('donation')){agreementUpload=bindShopUploads(['donationAgreementFile'],base,20,['pdf','doc','docx','png','jpg','jpeg']);uploads.push(agreementUpload);}
+ if(includes('customer')){
+  const input=$('#shop-module-customer-id'),test=$('#edit-form [data-action=customer-service-test]');
+  const syncTest=()=>{test.hidden=!input.value.trim()||input.value.trim()===CS.config().fallbackId;};
+  input.addEventListener('input',syncTest);syncTest();
+ }
  if(includes('qualifications')){
   const add=q=>{const index=qualificationIndex++,prefix='moduleQ'+index+'_',id=q?.id||'Q'+Date.now()+'_'+index;
    const container=$('#shop-module-qualifications');
@@ -863,7 +870,7 @@ function shopConfigEditor(kind,application=null){
  if(kind?.startsWith('module:'))return shopModuleEditor(kind.slice(7),application);
  if(!isMerchant)return;const s=currentShop();if(!s||!ensureEditable(s))return;
  const saved=application?editableApplication('店铺资料变更',s.id,application):D.applications.find(a=>a.org===S.org&&a.object===s.id&&a.type==='店铺资料变更'&&a.snapshot?.configSection===kind&&['草稿','已撤回','已驳回'].includes(a.status)),base={...s,...saved?.snapshot};
- const definitions={name:['修改店铺名称',field('店铺名称','name',base.name)],category:['修改主营类目',field('主营类目','category',base.category)],intro:['修改店铺简介',field('店铺简介','intro',base.intro||'','textarea',true,true)],logo:['修改店铺 logo',shopLogoUploadField('shopLogoFile','店铺 logo','成图 300 × 300 像素，超出可裁剪；JPG、PNG、WebP 静态图片，最大 2 MB。',true)],service:['修改店铺默认客服','<label class="full"><span>默认客服账号 ID（open_kfid） <span class="required-tip">*</span></span><input name="customerServiceId" required value="'+esc(base.customerServiceId||CS.config().fallbackId)+'" placeholder="请输入微信客服账号 ID" autocomplete="off"></label><p class="full tiny muted">填写在平台企业微信中创建的客服账号 ID。提交时校验企业归属、接口权限、客服链接及接待人员；账号与人员信息每 5 分钟自动更新。</p>'],return:['修改退换货地址',field('退换货地址','returnAddress',base.returnAddress||D.products.find(p=>p.shop===s.id)?.returnAddress||'','textarea',true,true)]};
+ const definitions={name:['修改店铺名称',field('店铺名称','name',base.name)],category:['修改主营类目',field('主营类目','category',base.category)],intro:['修改店铺简介',field('店铺简介','intro',base.intro||'','textarea',true,true)],logo:['修改店铺 logo',shopLogoUploadField('shopLogoFile','店铺 logo','成图 300 × 300 像素，超出可裁剪；JPG、PNG、WebP 静态图片，最大 2 MB。',true)],service:['修改店铺默认客服','<label class="full"><span>客服账号 ID（open_kfid） <span class="required-tip">*</span></span><input name="customerServiceId" required value="'+esc(base.customerServiceId||'')+'" placeholder="请输入微信客服账号 ID" autocomplete="off"></label><p class="full tiny muted">填写在平台企业微信中创建的客服账号 ID。提交时校验企业归属、接口权限、客服链接及接待人员；账号与人员信息每 5 分钟自动更新。</p>'],return:['修改退换货地址',field('退换货地址','returnAddress',base.returnAddress||D.products.find(p=>p.shop===s.id)?.returnAddress||'','textarea',true,true)]};
  const definition=definitions[kind];if(!definition)return;let logo=base.logo||'',logoUpload;const owner=S.org,shopId=s.id;
  form(definition[0],definition[1],(data,intent)=>{
   if(S.org!==owner||currentShop()?.id!==shopId||!canUse('shop'))return '当前店铺或操作权限已变化，请重新操作。';
@@ -950,7 +957,7 @@ function previewShopFile(file){
 function shopDonationSection(s){
  const pendingFile=D.applications.find(a=>a.org===S.org&&a.object===s.id&&a.type==='店铺捐赠协议变更'&&['草稿','已撤回','已驳回','待审批'].includes(a.status));
  const file=s.donationAgreementFile;
- return '<section class="shop-info-group"><h2>原始协议</h2><dl><div class="shop-info-row"><dt>原始协议文件</dt><dd><div class="shop-info-value">'+(file?btn(esc(file.name),'shop-file','donationAgreementFile','link'):'未上传')+'</div><div class="shop-info-action">'+''+'</div></dd></div></dl>'+(pendingFile?'<p class="shop-agreement-pending">'+badge(pendingFile.status)+' '+link(pendingFile.snapshot.donationAgreementFile?.name||'协议文件草稿','application',pendingFile.id)+'</p>':'')+'</section><section class="shop-info-group shop-donation-inline" aria-label="每单捐协议客户端展示">'+shopDonationPreviewContent(s.donationAgreement||'尚未发布每单捐协议')+'</section>';
+ return '<section class="shop-info-group"><h2>原始协议</h2><dl><div class="shop-info-row"><dt>原始协议文件</dt><dd><div class="shop-info-value">'+(file?btn(esc(file.name),'shop-file','donationAgreementFile','link'):'未上传')+'</div><div class="shop-info-action">'+''+'</div></dd></div></dl>'+(pendingFile?'<p class="shop-agreement-pending">'+badge(pendingFile.status)+' '+link(pendingFile.snapshot.donationAgreementFile?.name||'协议文件草稿','application',pendingFile.id)+'</p>':'')+'</section><section class="shop-info-group shop-donation-inline" aria-label="每单捐协议客户端展示"><p class="tiny muted">每单捐协议展示在客户端。</p>'+shopDonationPreviewContent(s.donationAgreement||'尚未发布每单捐协议')+'</section>';
 }
 function shopDonationUpload(application){
  if(!isMerchant)return;const s=currentShop();if(!s||!ensureEditable(s))return;const saved=application||D.applications.find(a=>a.org===S.org&&a.object===s.id&&a.type==='店铺捐赠协议变更'&&['草稿','已撤回','已驳回'].includes(a.status)),base={...s,...saved?.snapshot};let upload;
@@ -1011,6 +1018,9 @@ function setupOrganizationScroll(){
  organizationScrollCleanup();
  const nav=$('.organization-section-nav');if(!['organization','shop'].includes(S.page)||!nav)return;
  const sections=[...document.querySelectorAll('[data-organization-section]')],initial=S.tab;
+ const container=nav.parentElement.querySelector('.organization-sections'),basePadding=container?parseFloat(getComputedStyle(container).paddingBottom)||0:0;
+ const reserveScrollSpace=()=>{if(container&&sections.length)container.style.paddingBottom=(basePadding+Math.max(0,window.innerHeight-organizationScrollOffset()-sections.at(-1).getBoundingClientRect().height))+'px';};
+ reserveScrollSpace();
  let frame=0,initialFrame=0;
  const update=()=>{
   frame=0;if(!nav.isConnected)return;
@@ -1024,9 +1034,10 @@ function setupOrganizationScroll(){
   if(current)activateOrganizationSection(current.dataset.organizationSection);
  };
  const schedule=()=>{if(!frame)frame=requestAnimationFrame(update);};
- window.addEventListener('scroll',schedule,{passive:true});window.addEventListener('resize',schedule);
+ const resize=()=>{reserveScrollSpace();schedule();};
+ window.addEventListener('scroll',schedule,{passive:true});window.addEventListener('resize',resize);
  initialFrame=requestAnimationFrame(()=>{if(!nav.isConnected)return;if(initial!==sections[0]?.dataset.organizationSection)scrollOrganizationSection(initial);update();});
- organizationScrollCleanup=()=>{organizationScrollTarget=null;window.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);cancelAnimationFrame(frame);cancelAnimationFrame(initialFrame);};
+ organizationScrollCleanup=()=>{organizationScrollTarget=null;window.removeEventListener('scroll',schedule);window.removeEventListener('resize',resize);cancelAnimationFrame(frame);cancelAnimationFrame(initialFrame);};
 }
 for(const a of D.applications)if(a.status==='已撤回'){a.withdrawnAt=a.withdrawnAt||a.date;a.approvalStages=a.approvalStages||String(a.stage||'').split(' → ');a.status='草稿';a.stage='未提交';}
 function ownApplication(a){return a.accountKey?a.accountKey===S.demoAccount:a.who===currentAccountName();}
@@ -2687,10 +2698,10 @@ function shopEditor(opening=false,application=null){
  if(!isMerchant||!C.manage())return;
  const owner=S.org,saved=opening?(application||D.applications.find(a=>a.org===owner&&a.type==='店铺开通'&&ownApplication(a)&&['草稿','已撤回','已驳回'].includes(a.status))):editableApplication('店铺资料变更',currentShop()?.id,application);
  if(saved&&(saved.org!==owner||!ownApplication(saved)||!['草稿','已撤回','已驳回'].includes(saved.status)))return;
- const s=(!opening&&currentShop())||{id:saved?.object||'SHOP'+Date.now(),org:owner,name:'',intro:'',category:'文具 / 家居',customerServiceId:CS.config().fallbackId},base={...s,...saved?.snapshot};let upload;
+ const s=(!opening&&currentShop())||{id:saved?.object||'SHOP'+Date.now(),org:owner,name:'',intro:'',category:'文具 / 家居',customerServiceId:''},base={...s,...saved?.snapshot};let upload;
  const logo=shopLogoUploadField('shopLogo','店铺标识图片',base.shopLogo?.name||'成图 300 × 300 像素，超出可裁剪；JPG、PNG、WebP 静态图片，最大 2 MB');
  const proof='<label class="full">经营资质证明材料<input name="categoryProof" type="file" accept="image/png,image/jpeg,application/pdf"><span class="local-file-note" data-upload-note="categoryProof">'+esc(base.categoryProof?.name||'自行上传时必填；支持 JPG、PNG、PDF，最大 10 MB')+'</span></label>';
- form(opening?'开设店铺':'店铺资料变更',field('店铺名称','name',base.name)+field('经营类目','category',base.category)+field('店铺简介','intro',base.intro,'textarea',true,true)+logo+field('默认客服账号 ID（open_kfid）','customerServiceId',base.customerServiceId||CS.config().fallbackId)+section('经营资质')+select('资质来源','qualificationSource',[['organization','继承组织营业执照'],['upload','自行上传']],base.qualificationSource||'organization')+select('资质适用品类','qualificationCategory',String(base.category).split(/[/、,，]/).map(x=>x.trim()).filter(Boolean),base.qualificationCategory)+proof+field('资质有效期至','qualificationValidUntil',base.qualificationValidUntil||'','date',false)+checkbox('资质长期有效','qualificationLongTerm',base.qualificationLongTerm)+'<p class="full tiny muted" data-inherited-qualification>材料及有效期引用本组织生效营业执照。</p>'+'<div class="hint full">商品订单收款主体：'+esc(D.paymentCollection.name)+'；分账接收账户：'+esc(paymentAccountText(org().bank))+'</div>'+consent('我已阅读并同意开店协议、经营协议'),(data,intent)=>{
+ form(opening?'开设店铺':'店铺资料变更',field('店铺名称','name',base.name)+field('经营类目','category',base.category)+field('店铺简介','intro',base.intro,'textarea',true,true)+logo+field('客服账号 ID（open_kfid）','customerServiceId',base.customerServiceId||'')+section('经营资质')+select('资质来源','qualificationSource',[['organization','继承组织营业执照'],['upload','自行上传']],base.qualificationSource||'organization')+select('资质适用品类','qualificationCategory',String(base.category).split(/[/、,，]/).map(x=>x.trim()).filter(Boolean),base.qualificationCategory)+proof+field('资质有效期至','qualificationValidUntil',base.qualificationValidUntil||'','date',false)+checkbox('资质长期有效','qualificationLongTerm',base.qualificationLongTerm)+'<p class="full tiny muted" data-inherited-qualification>材料及有效期引用本组织生效营业执照。</p>'+'<div class="hint full">商品订单收款主体：'+esc(D.paymentCollection.name)+'；分账接收账户：'+esc(paymentAccountText(org().bank))+'</div>'+consent('我已阅读并同意开店协议、经营协议'),(data,intent)=>{
   if(S.org!==owner||!C.manage())return '人员权限或当前组织已更新，请重新操作。';
   if(upload.reading())return '文件读取中，请稍候。';if(upload.error())return upload.error();
   const snapshot={...data,...upload.files};delete snapshot.agreement;delete snapshot.qualificationName;
