@@ -140,7 +140,7 @@ function restoreWorkspaceRoute(){
   if(isMerchant&&S.page==='orders'){const afterTodo=afterQuick.includes(params.get('afterTodo'))?params.get('afterTodo'):'';if(afterTodo)S.quick='退款/售后';S.filters[filterKey()]={...f(),afterTodo};}
   if(!isMerchant&&params.get('project')&&scopedProject(params.get('project')))S.project=params.get('project');
   if(!isMerchant&&S.project&&scopedProduct(params.get('goods'))?.project===S.project)S.product=params.get('goods');
-  if(params.get('view')==='settlement'&&params.get('order')){S.page=isMerchant?'orders':'settlement';S.tab=workspaceDefaultTab(S.page);S.filters[filterKey()]={q:params.get('order')};}
+  if(params.get('view')==='settlement'&&params.get('order')){S.page=isMerchant?'orders':'settlement';S.tab=workspaceDefaultTab(S.page);S.filters[filterKey()]=isMerchant?{q:params.get('order')}:settlementOrderFilter(params.get('order'));}
   if(!isMerchant&&params.get('activity')&&scopedProject(activity(params.get('activity'))?.project))S.activity=params.get('activity');
   if(!isMerchant){
    const item=activity(S.activity),kind=item?.kind;
@@ -279,7 +279,7 @@ function partMatchesOrderQuery(o,part,q){
  return (!['待发货','待收货'].includes(S.quick)||status===S.quick)&&(!q.orderStatus||status===q.orderStatus)&&(!q.split||split===q.split)&&(afterTab||(!q.afterStatus||after===q.afterStatus)&&(!q.afterType||Boolean(after)&&part.type===q.afterType));
 }
 function inOrderPartQuery(o,q){return orderStatusParts(o).some(part=>partMatchesOrderQuery(o,part,q));}
-function filteredOrders(rows){const q=f(),range=isMerchant&&S.quick==='退款/售后'?{}:isMerchant?(q.timeRange==='自定义'?{from:q.from,to:q.to}:orderDateRange(q.timeRange||'近90日')):q;return rows.filter(o=>(isMerchant?(includesText(o.id,q.q)||includesText(o.parentOrderId,q.q)):matching({...o,name:product(o.product)?.name},q.q))&&(!isMerchant||includesText((o.receiver||'').split('\n')[0],q.receiverName)&&includesText((o.receiver||'').split('\n')[1],q.receiverPhone)&&includesText(o.waybills,q.waybill)&&(!q.productId?includesText(o.productName||product(o.product)?.name,q.productName):o.product===q.productId))&&(!isMerchant||(!q.remarkColor||o.merchantRemark?.color===q.remarkColor)&&(!q.remarkPresence||(q.remarkPresence==='yes')===Boolean(o.merchantRemark?.text?.trim())))&&(!isMerchant||R.inShippingWindow(o,q.shippingWindow,demoNow.getTime()))&&(!isMerchant||inAfterQuick(o,q.afterTodo))&&(!isMerchant||inOrderPartQuery(o,q))&&(!isMerchant||inAfterQuery(o,q))&&(isMerchant||inAfterStatus(o,q.afterStatus))&&(!q.pickup||(q.pickup==='yes')===(o.method!=='快递配送'))&&(!q.delivery||o.delivery===q.delivery)&&(isMerchant||!q.split||orderSplitStatus(o)===q.split)&&(isMerchant||!q.afterType||o.afterType===q.afterType)&&(!q.after||(q.after==='无售后'?noAfter(o):afterStage(o)===q.after))&&(!q.payment||o.payment===q.payment)&&(isMerchant||!q.issue||R.orderIssueTypes(o,demoNow.getTime()).includes(q.issue))&&(!range.from||new Date(o.date.replace(' ','T')).getTime()>=new Date(range.from).getTime())&&(!range.to||new Date(o.date.replace(' ','T')).getTime()<=new Date(range.to.length===10?range.to+'T23:59:59':range.to).getTime()));}
+function filteredOrders(rows,q=f()){const range=isMerchant&&S.quick==='退款/售后'?{}:isMerchant?(q.timeRange==='自定义'?{from:q.from,to:q.to}:orderDateRange(q.timeRange||'近90日')):S.page==='settlement'?settlementPeriod(q):q;return rows.filter(o=>(isMerchant?(includesText(o.id,q.q)||includesText(o.parentOrderId,q.q)):matching({...o,name:product(o.product)?.name},q.q))&&(!isMerchant||includesText((o.receiver||'').split('\n')[0],q.receiverName)&&includesText((o.receiver||'').split('\n')[1],q.receiverPhone)&&includesText(o.waybills,q.waybill)&&(!q.productId?includesText(o.productName||product(o.product)?.name,q.productName):o.product===q.productId))&&(!isMerchant||(!q.remarkColor||o.merchantRemark?.color===q.remarkColor)&&(!q.remarkPresence||(q.remarkPresence==='yes')===Boolean(o.merchantRemark?.text?.trim())))&&(!isMerchant||R.inShippingWindow(o,q.shippingWindow,demoNow.getTime()))&&(!isMerchant||inAfterQuick(o,q.afterTodo))&&(!isMerchant||inOrderPartQuery(o,q))&&(!isMerchant||inAfterQuery(o,q))&&(isMerchant||inAfterStatus(o,q.afterStatus))&&(!q.pickup||(q.pickup==='yes')===(o.method!=='快递配送'))&&(!q.delivery||o.delivery===q.delivery)&&(isMerchant||!q.split||orderSplitStatus(o)===q.split)&&(isMerchant||!q.afterType||o.afterType===q.afterType)&&(!q.after||(q.after==='无售后'?noAfter(o):afterStage(o)===q.after))&&(!q.payment||o.payment===q.payment)&&(isMerchant||!q.issue||R.orderIssueTypes(o,demoNow.getTime()).includes(q.issue))&&(!range.from||new Date(o.date.replace(' ','T')).getTime()>=new Date(range.from).getTime())&&(!range.to||new Date(o.date.replace(' ','T')).getTime()<=new Date(range.to.length===10?range.to+'T23:59:59':range.to).getTime()));}
 function orderLabelFilters(){
  const q=f(),context={org:S.org,shop:currentShop()?.id};
  const menu=(key,title,options)=>'<details class="order-label-menu" name="order-label-menu"><summary>'+title+'</summary><div class="order-label-options" role="group" aria-label="'+(key==='remarkColor'?'标记':'备注')+'筛选">'+options.map(([value,label])=>'<button type="button" data-action="filter-label" data-id="'+key+':'+value+'" aria-pressed="'+((q[key]||'')===value)+'">'+(key==='remarkColor'&&value?remarkFlag(value):'')+esc(label)+'</button>').join('')+'</div></details>';
@@ -287,6 +287,7 @@ function orderLabelFilters(){
 }
 function orderFilters(){
  const q=f(),pickup=select('是否现场领取','pickup',[['yes','是'],['no','否']],q.pickup,true),split=select('分账状态','split',isMerchant?['待分账','处理中','分账成功','售后暂停','分账异常','分账取消']:['待分账','分账成功','售后暂停','分账异常'],q.split,true);
+ if(!isMerchant&&S.page==='settlement')return filterBar(split+'<input type="hidden" name="settlementOrg" value="'+esc(q.settlementOrg||'')+'"><input type="hidden" name="settlementProduct" value="'+esc(q.settlementProduct||'')+'"><input type="hidden" name="settlementRange" value="'+esc(q.settlementRange||'实时')+'"><input type="hidden" name="from" value="'+esc(settlementPeriod(q).from)+'"><input type="hidden" name="to" value="'+esc(settlementPeriod(q).to)+'">','搜索订单号 / 商品');
  if(!isMerchant)return filterBar(pickup+select('交付状态','delivery',['待发货','已发货','已收货','待领取','已关闭'],q.delivery,true)+split+'<details><summary class="tiny muted">更多条件</summary><div class="flex wrap" style="padding-top:10px">'+select('支付状态','payment',['支付成功','待付款'],q.payment,true)+select('售后类型','afterType',['退货退款','退款（无需退货）',['极速退款','未发货极速退款']],q.afterType,true)+select('处理状态','after',[...afterStates,'无售后'],q.after,true)+input('下单开始','from',q.from||'','date')+input('下单结束','to',q.to||'','date')+'</div></details>','搜索订单号 / 商品');
  const range=q.timeRange==='自定义'?q:orderDateRange(q.timeRange||'近90日');
  const time=window.MerchantDateRange.field('订单下单时间','timeRange','from','to',q.timeRange||'近90日',range.from,range.to,dateValue(demoNow));
@@ -505,7 +506,81 @@ function splitTable(o){if(isMerchant&&!C.canReadSplit(o))return '';
  return (isMerchant?orderSplitVersion(o):'')+splitExceptionInfo(o)+title+details+table(heads,rows,!isMerchant);
 }
 
-function settlementPage(){const rows=filteredOrders(myOrders());return heading('分账对账','查询本基金会关联订单、应收份额与到账记录。')+metrics(rows,true)+'<section class="card">'+orderFilters()+summary(rows)+settlementTable(rows)+'</section>';}
+const settlementRanges=['实时','昨日','7日','30日','周','月','自定义'];
+const settlementExpanded=new Set(),settlementInitialized=new Set();
+const settlementGroupKey=(orgId,productId='')=>[S.org,orgId,productId].filter(Boolean).join(':');
+function settlementPeriod(query=f()){
+ const mode=query.settlementRange||'实时';
+ if(mode==='自定义')return {from:query.from||'',to:query.to||''};
+ const end=new Date(demoNow),start=new Date(demoNow);start.setHours(0,0,0,0);
+ if(mode!=='实时'){
+  end.setDate(end.getDate()-1);end.setHours(23,59,59,999);start.setTime(end.getTime());start.setHours(0,0,0,0);
+  if(mode==='7日'||mode==='30日')start.setDate(start.getDate()-(mode==='7日'?6:29));
+  if(mode==='周'){end.setTime(demoNow.getTime());end.setHours(23,59,59,999);end.setDate(end.getDate()-(end.getDay()+6)%7-1);start.setTime(end.getTime());start.setHours(0,0,0,0);start.setDate(start.getDate()-6);}
+  if(mode==='月'){end.setTime(demoNow.getTime());end.setDate(0);end.setHours(23,59,59,999);start.setTime(end.getTime());start.setDate(1);start.setHours(0,0,0,0);}
+ }
+ return {from:dateValue(start).slice(0,10),to:mode==='实时'?dateValue(end):dateValue(end).slice(0,10)};
+}
+function settlementOrderFilter(id){const order=myOrders().find(o=>o.id===id),date=order?.date.slice(0,10);if(order){settlementExpanded.add(settlementGroupKey(order.org));settlementExpanded.add(settlementGroupKey(order.org,order.product));}return date?{q:id,settlementRange:'自定义',from:date,to:date}:{q:id};}
+function settlementScopedRows(rows){const query=f();return rows.filter(o=>(!query.settlementOrg||o.org===query.settlementOrg)&&(!query.settlementProduct||o.product===query.settlementProduct));}
+function settlementScopeFilters(){
+ const query=f(),orders=myOrders(),organizations=[...new Set(orders.map(o=>o.org))],products=new Map();
+ for(const o of orders)if(!query.settlementOrg||o.org===query.settlementOrg)products.set(o.product,o.productName||product(o.product)?.name||o.product);
+ return '<form id="settlement-scope-form" class="settlement-scope-filters" aria-label="分账统计范围">'+select('组织','settlementOrg',organizations.map(id=>[id,D.organizations.find(o=>o.id===id)?.name||id]),query.settlementOrg,true)+select('商品','settlementProduct',[...products],query.settlementProduct,true)+btn('查看全部','settlement-scope','','link')+'</form>';
+}
+function applySettlementScope(orgId='',productId=''){
+ const orders=myOrders();if(productId){const order=orders.find(o=>o.product===productId&&(!orgId||o.org===orgId));if(!order)return;orgId=order.org;}
+ if(orgId&&!orders.some(o=>o.org===orgId))return;
+ S.filters[filterKey()]={...f(),settlementOrg:orgId,settlementProduct:productId};
+ if(orgId)settlementExpanded.add(settlementGroupKey(orgId));render();
+}
+function settlementHierarchy(rows){
+ if(!settlementInitialized.has(S.org)){for(const order of myOrders())settlementExpanded.add(settlementGroupKey(order.org));settlementInitialized.add(S.org);}
+ const groups=new Map(),body=[];
+ for(const o of rows){if(!groups.has(o.org))groups.set(o.org,new Map());const products=groups.get(o.org);if(!products.has(o.product))products.set(o.product,[]);products.get(o.product).push(o);}
+ const amounts=orders=>{const a=amountRows(orders);return [money(a.paid),money(a.refund),money(a.due),money(a.settled),money(round(a.due-a.settled))];};
+ const groupRow=(orgId,productId,orders,label,note)=>{
+  const key=settlementGroupKey(orgId,productId),open=settlementExpanded.has(key),level=productId?'product':'organization';
+  const toggle='<button type="button" class="settlement-tree-toggle" data-action="settlement-group" data-id="'+esc(key)+'" aria-expanded="'+open+'" aria-label="'+(open?'收起':'展开')+esc(label)+'"><svg class="context-chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4"/></svg></button>';
+  const choose='<span class="settlement-tree-name">'+esc(label)+'</span>';
+  const first='<div class="settlement-tree-label">'+toggle+'<div>'+choose+'<div class="tiny muted">'+esc(note)+'</div></div></div>';
+  return tr([first,...amounts(orders),'']).replace('<tr>','<tr class="settlement-group-row settlement-'+level+'-row" data-settlement-org="'+esc(orgId)+'" data-settlement-product="'+esc(productId)+'" data-settlement-level="'+level+'" data-settlement-group="'+esc(key)+'">');
+ };
+ for(const [orgId,products]of groups){
+  const orders=[...products.values()].flat(),organization=D.organizations.find(o=>o.id===orgId);
+  body.push(groupRow(orgId,'',orders,organization?.name||orgId,products.size+' 款商品 · '+orders.length+' 笔订单'));
+  if(!settlementExpanded.has(settlementGroupKey(orgId)))continue;
+  for(const [productId,orders]of products){
+   body.push(groupRow(orgId,productId,orders,orders[0].productName||product(productId)?.name||productId,orders.length+' 笔订单'));
+   if(!settlementExpanded.has(settlementGroupKey(orgId,productId)))continue;
+   for(const o of orders){
+    body.push(tr(['<div class="settlement-order-label">'+link(o.id,'order',o.id)+'<div class="tiny muted">'+esc(o.date)+' · '+esc(D.shops.find(s=>s.id===o.shop)?.name||o.shop)+'</div></div>',...amounts([o]),badge(orderSplitStatus(o))+'<div class="settlement-order-actions">'+btn(S.expanded===o.id?'收起分账':'展开分账','expand',o.id,'link')+'</div>']).replace('<tr>','<tr data-settlement-org="'+esc(orgId)+'" data-settlement-product="'+esc(productId)+'" data-settlement-level="order" data-settlement-order="'+esc(o.id)+'">'));
+    if(S.expanded===o.id)body.push('<tr class="subrow settlement-split-row" data-settlement-org="'+esc(orgId)+'" data-settlement-product="'+esc(productId)+'" data-settlement-order="'+esc(o.id)+'"><td colspan="7">'+splitTable(o)+'</td></tr>');
+   }
+  }
+ }
+ return '<div class="settlement-tree">'+table(['组织 / 商品 / 订单','实付金额','退款金额','本组织应收','本组织已到账','待结算','状态 / 操作'],body,false)+'</div><div class="table-footer"><span>共 '+groups.size+' 个组织 · '+[...groups.values()].reduce((n,g)=>n+g.size,0)+' 款商品 · '+rows.length+' 笔订单</span></div>';
+}
+function settlementTrend(rows){
+ const period=settlementPeriod(),start=new Date(period.from.slice(0,10)+'T00:00:00'),end=new Date(period.to.slice(0,10)+'T00:00:00'),days=Math.round((end-start)/86400000)+1;
+ const hourly=days===1,monthly=days>90,yearStep=Math.max(1,Math.ceil((end.getFullYear()-start.getFullYear()+1)/60)),yearly=days>3660,points=[];
+ const key=date=>hourly?date.slice(0,13):yearly?String(start.getFullYear()+Math.floor((Number(date.slice(0,4))-start.getFullYear())/yearStep)*yearStep):monthly?date.slice(0,7):date.slice(0,10);
+ if(hourly){const hours=(f().settlementRange||'实时')==='实时'?demoNow.getHours()+1:24;for(let i=0;i<hours;i++){const hour=String(i).padStart(2,'0');points.push({key:period.from.slice(0,10)+'T'+hour,label:hour+':00',orders:[]});}}
+ else{const date=new Date(start);if(monthly)date.setDate(1);if(yearly)date.setMonth(0,1);while(date<=end){const value=dateValue(date),label=yearly?String(date.getFullYear()):monthly?value.slice(0,7):value.slice(5,10);points.push({key:key(value),label,orders:[]});if(yearly)date.setFullYear(date.getFullYear()+yearStep);else if(monthly)date.setMonth(date.getMonth()+1);else date.setDate(date.getDate()+1);}}
+ const buckets=new Map(points.map(p=>[p.key,p]));for(const o of rows)buckets.get(key(o.date.replace(' ','T')))?.orders.push(o);
+ for(const point of points){const a=amountRows(point.orders);point.due=a.due;point.settled=a.settled;point.pending=round(a.due-a.settled);}
+ const series=[['due','应收分账','#267457'],['settled','已到账分账','#4789c0'],['pending','待结算分账','#bc883d']],values=points.flatMap(p=>series.map(([k])=>p[k])),minimum=Math.min(0,...values),maximum=Math.max(1,...values),span=maximum-minimum;
+ const x=i=>84+(points.length===1?438:i/(points.length-1)*876),y=value=>224-(value-minimum)/span*188,axis=value=>Math.abs(value)>=10000?(value/10000).toFixed(1)+'万':value.toLocaleString('zh-CN',{maximumFractionDigits:2});
+ const grid=Array.from({length:5},(_,i)=>{const value=minimum+span*i/4,py=y(value);return '<line x1="84" x2="960" y1="'+py+'" y2="'+py+'" class="settlement-gridline"/><text x="74" y="'+(py+4)+'" text-anchor="end">'+esc(axis(value))+'</text>';}).join('');
+ const curves=series.map(([name,label,color],seriesIndex)=>'<g class="settlement-trend-series" data-series="'+name+'" style="--series-color:'+color+'"><polyline fill="none" stroke="'+color+'" stroke-width="2"'+(seriesIndex===2?' stroke-dasharray="6 4"':'')+' points="'+points.map((p,i)=>x(i)+','+y(p[name])).join(' ')+'"/>'+points.map((p,i)=>'<circle cx="'+x(i)+'" cy="'+y(p[name])+'" r="3" fill="'+color+'" tabindex="0" data-value="'+p[name]+'" aria-label="'+esc(p.key.replace('T',' ')+' '+label+' '+money(p[name]))+'"><title>'+esc(p.key.replace('T',' ')+' '+label+'：'+money(p[name]))+'</title></circle>').join('')+'</g>').join('');
+ const labels=[...new Set(Array.from({length:Math.min(7,points.length)},(_,i)=>Math.round(i*(points.length-1)/Math.max(1,Math.min(7,points.length)-1))))].map(i=>'<text x="'+x(i)+'" y="252" text-anchor="middle">'+esc(points[i].label)+'</text>').join('');
+ return '<section class="card settlement-trend"><div class="settlement-trend-head"><div><h2>分账趋势</h2><p class="tiny muted">按下单时间'+(hourly?'分小时':yearly?'每 '+yearStep+' 年':monthly?'分月':'分日')+'汇总订单当前分账金额 · 单位：元</p></div><div class="settlement-chart-legend">'+series.map(([name,label,color])=>'<span><i style="background:'+color+'"></i>'+label+'</span>').join('')+'</div></div>'+(!rows.length?'<p class="settlement-chart-empty">当前筛选范围暂无订单</p>':'')+'<div class="settlement-chart-scroll"><svg class="settlement-chart" viewBox="0 0 1000 270" role="img" aria-label="应收、已到账及待结算分账金额趋势"><title>分账趋势</title>'+grid+curves+labels+'</svg></div></section>';
+}
+function settlementDatebar(){
+ const query=f(),mode=query.settlementRange||'实时',period=settlementPeriod(query),today=dateValue(demoNow).slice(0,10);
+ return '<section class="card settlement-overview"><div class="settlement-overview-head"><h2>分账概况</h2><span class="tiny muted">统计时间：'+esc(dateValue(demoNow).replace('T',' ').slice(0,16))+'</span></div><div class="settlement-time-row"><span class="tiny muted">下单时间：'+esc(period.from)+' 至 '+esc(period.to.replace('T',' '))+'</span><div class="settlement-datebar" role="group" aria-label="分账对账时间筛选">'+settlementRanges.map(name=>'<button type="button" class="btn'+(name===mode?' selected':'')+'" data-action="settlement-range" data-id="'+name+'" aria-pressed="'+(name===mode)+'">'+name+'</button>').join('')+'</div></div>'+(mode==='自定义'?'<form id="settlement-date-form" class="settlement-custom-dates"><label>开始日期<input type="date" name="from" aria-label="下单开始日期" value="'+esc(period.from.slice(0,10))+'" max="'+today+'" required></label><span>至</span><label>结束日期<input type="date" name="to" aria-label="下单结束日期" value="'+esc(period.to.slice(0,10))+'" max="'+today+'" required></label><button class="btn primary" type="submit">查询</button><span class="settlement-date-error" role="alert"></span></form>':'')+settlementScopeFilters()+'</section>';
+}
+function settlementPage(){const query=f(),period={settlementRange:query.settlementRange,from:query.from,to:query.to},scoped=settlementScopedRows(filteredOrders(myOrders(),period)),rows=settlementScopedRows(filteredOrders(myOrders()));return heading('分账对账','查询本基金会关联订单、应收份额与到账记录。')+settlementDatebar()+metrics(scoped,true)+settlementTrend(scoped)+'<section class="card settlement-details"><div class="card-head"><div><h2>分账明细</h2><p class="subtitle">按组织、商品逐层展开，查看订单及分账记录。</p></div></div>'+orderFilters()+summary(rows)+settlementHierarchy(rows)+'</section>';}
 function customerServiceDescription(p,shop=D.shops.find(s=>s.id===p?.shop)||currentShop()){
  const result=CS.resolve(p,shop),a=result.account;
  return a?esc(a.name)+'<span class="tiny muted"> · 账号 ID：'+esc(a.id)+' · 接待人员：'+esc(a.servicers.join('、'))+(result.fallback?' · 使用平台兜底客服':'')+'</span>':'<span class="danger-note">暂无可用客服，请联系平台管理员配置。</span>';
@@ -513,12 +588,37 @@ function customerServiceDescription(p,shop=D.shops.find(s=>s.id===p?.shop)||curr
 function customerServiceTest(id=''){
  if(!isMerchant||!currentShop())return;
  const p=id?scopedProduct(id):null;if(id&&!p)return;
- const edit=$('#edit-form [name=customerServiceId]');
- const candidate=edit?{customerServiceId:edit.value.trim()}:p;
- if(candidate?.customerServiceId){const checked=CS.verify(candidate.customerServiceId);if(checked.error){subdialog('测试咨询','<p>'+esc(checked.error)+'</p>','关闭');return;}}
- const result=CS.resolve(candidate,currentShop()),a=result.account;
- subdialog('测试咨询',a?'<p class="tiny muted">原型咨询路由预览</p>'+kv([['咨询来源',p?p.name:edit?.closest('.product-editor')?'当前编辑商品':$('#overlay .product-editor')?'当前编辑商品':'店铺客服'],['接待客服',a.name],['客服账号 ID（open_kfid）',a.id],['接待人员',CS.staff(a)],['企业 ID（CorpID）',CS.config().corpId],['企业名称',CS.config().enterpriseName],['客服链接',a.url],['路由结果',result.fallback?'账号不可用，使用平台兜底客服':'使用当前配置的客服账号']]):'<p>暂无可用客服，请联系平台管理员配置。</p>','关闭');
+ const edit=$('#edit-form [name=customerServiceId]'),shopId=currentShop().id,owner=S.org;
+ const requestedId=()=>edit?edit.value.trim():p?.customerServiceId||currentShop()?.customerServiceId||CS.config().fallbackId;
+ let verifiedId='',verifiedAccount=null;
+ subdialog('客服账号测试','<div class="customer-test"><p class="tiny muted">原型演示：账号验证与消息送达回执使用示例数据。</p><section class="customer-test-step"><div class="customer-test-step-head"><h3>1. 验证账号</h3><button type="button" class="btn" id="customer-test-verify">验证账号</button></div><p class="tiny muted">获取客服账号信息，确认账号存在且可用。</p><div id="customer-test-account" aria-live="polite"></div></section><section class="customer-test-step"><div class="customer-test-step-head"><h3>2. 测试消息送达</h3><button type="button" class="btn" id="customer-test-open" disabled>打开客户端客服页</button></div><p class="tiny muted">验证账号后，进入客户端客服页发送消息并查看送达回执。</p><div id="customer-test-client" hidden><div class="customer-test-client-head"></div><div class="customer-test-messages" role="log" aria-live="polite"></div><label for="customer-test-message" class="tiny">测试消息</label><div class="shop-customer-input"><input id="customer-test-message" maxlength="200" placeholder="请输入测试消息"><button type="button" class="btn primary" id="customer-test-send">发送</button></div></div><p id="customer-test-result" class="tiny" role="status"></p></section></div>','关闭');
+ const panel=$('#secondary'),account=panel.querySelector('#customer-test-account'),open=panel.querySelector('#customer-test-open'),client=panel.querySelector('#customer-test-client'),result=panel.querySelector('#customer-test-result');
+ const clear=()=>{verifiedId='';verifiedAccount=null;open.disabled=true;client.hidden=true;client.querySelector('.customer-test-messages').replaceChildren();client.querySelector('input').value='';result.textContent='';};
+ const current=()=>S.org===owner&&currentShop()?.id===shopId&&(!edit||edit.isConnected);
+ panel.querySelector('#customer-test-verify').addEventListener('click',()=>{
+  clear();if(!current()){account.textContent='当前店铺已变化，请重新打开测试。';return;}
+  const checked=CS.verify(requestedId());
+  if(checked.error){account.textContent=checked.error;return;}
+  verifiedAccount=checked.account;verifiedId=verifiedAccount.id;
+  account.innerHTML='<p class="customer-test-success">账号验证通过（示例数据）</p>'+kv([['接待客服',verifiedAccount.name],['客服账号 ID（open_kfid）',verifiedAccount.id],['接待人员',CS.staff(verifiedAccount)],['客服链接',verifiedAccount.url]]);open.disabled=false;
+ });
+ open.addEventListener('click',()=>{
+  if(!current()||!verifiedAccount||requestedId()!==verifiedId){clear();account.textContent='账号或店铺已变化，请重新验证。';return;}
+  client.hidden=false;client.querySelector('.customer-test-client-head').textContent='客户端客服页 · '+verifiedAccount.name;client.querySelector('input').focus();
+ });
+ const send=()=>{
+  if(!current()||!verifiedAccount||requestedId()!==verifiedId){clear();account.textContent='账号或店铺已变化，请重新验证。';return;}
+  const checked=CS.verify(verifiedId);if(checked.error){clear();account.textContent=checked.error;return;}
+  const input=client.querySelector('input'),message=input.value.trim();if(!message){result.textContent='请输入测试消息。';return;}
+  const bubble=document.createElement('div');bubble.className='customer-test-message';
+  const text=document.createElement('p'),receipt=document.createElement('span');text.textContent=message;receipt.className='tiny customer-test-success';receipt.textContent='已送达（模拟回执）';bubble.append(text,receipt);client.querySelector('.customer-test-messages').appendChild(bubble);
+  input.value='';result.textContent='消息已送达 '+verifiedAccount.name+'（原型演示）。';
+ };
+ panel.querySelector('#customer-test-send').addEventListener('click',send);
+ panel.querySelector('#customer-test-message').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();send();}});
+ if(edit){const changed=()=>{clear();account.textContent='账号已修改，请重新验证。';};edit.addEventListener('input',changed);panel.onSecondaryClose=()=>edit.removeEventListener('input',changed);}
 }
+
 function customerServiceDirectory(){
  if(!isMerchant||!currentShop())return;
  subdialog('客服账号与接待人员','<p>平台企业 ID：'+esc(CS.config().corpId)+'</p><p class="tiny muted">平台管理员在企业微信后台创建微信客服账号，并将负责此店铺的成员添加为接待人员。工作台每 5 分钟自动更新，填写账号 ID 提交时即时校验。</p>'+table(['客服名称','客服账号 ID（open_kfid）','接待人员（成员 UserID）','客服链接'],CS.accounts().filter(a=>CS.available(a)).map(a=>tr([esc(a.name),esc(a.id),esc(CS.staff(a)),esc(a.url)])),false),'关闭');
@@ -527,19 +627,22 @@ function updateProductCustomerService(){const select=$('#pe-customer-service'),s
 function shopPage(){
  const s=currentShop();
  if(!s)return heading('店铺管理','')+'<section class="card"><div class="empty">'+icon('shop')+'<p>当前商家尚未开通店铺</p>'+(C.manage()?btn('立即开店','shop-draft','','btn primary'):'')+'</div></section>';
- const names=['基本信息','经营资质','客服配置','捐赠协议'],active=names.includes(S.tab)?S.tab:'基本信息';
- const edit=(label,id)=>btn(label,'shop-config',id,'link');
+ const names=['基本信息','经营资质','客服配置','捐赠协议'];
+ S.tab=names.includes(S.tab)?S.tab:'基本信息';
+ const edit=()=>'';
  const row=(label,value,action='',raw=false)=>'<div class="shop-info-row"><dt>'+esc(label)+'</dt><dd><div class="shop-info-value">'+(raw?value:esc(value||'未填写'))+'</div>'+(action?'<div class="shop-info-action">'+action+'</div>':'')+'</dd></div>';
- const group=(title,rows)=>'<section class="shop-info-group"><h2>'+esc(title)+'</h2><dl>'+rows+'</dl></section>';
- let content='';
- if(active==='基本信息')content=group('基础信息',row('店铺名称',s.name,edit('修改','name'))+row('店铺编号',s.id)+row('开店时间',s.openedAt||'2026-10-20')+row('店铺类型',s.kind)+row('主营类目',s.category,edit('修改','category'))+row('店铺 logo',shopLogoBasicPreview(s),'',true)+row('店铺简介',s.intro,edit(s.intro?'修改':'添加简介','intro')));
- if(active==='客服配置'){
+ const group=(title,rows,extra='')=>'<section class="shop-info-group">'+(title?'<h2>'+esc(title)+'</h2>':'')+'<dl>'+rows+'</dl>'+extra+'</section>';
+ const bodies={};
+ bodies['基本信息']=group('基础信息',row('店铺名称',s.name,edit('修改','name'))+row('店铺编号',s.id)+row('开店时间',s.openedAt||'2026-10-20')+row('店铺类型',s.kind)+row('主营类目',s.category,edit('修改','category'))+row('店铺 logo',s.logo?'<img class="shop-logo" src="'+esc(s.logo)+'" alt="店铺 logo">':'未上传','',true)+row('店铺简介',s.intro,edit(s.intro?'修改':'添加简介','intro')));
+ {
   const a=CS.account(s.customerServiceId);
-  content=group('平台统一微信客服',row('企业名称',CS.config().enterpriseName)+row('企业 ID（CorpID）',CS.config().corpId+' · 平台统一配置')+row('默认客服账号',a?.name||'未配置',edit('修改','service')+' '+btn('测试咨询','customer-service-test','','link'))+row('客服账号 ID（open_kfid）',a?.id)+row('客服链接',a?.url)+row('接待人员（成员 UserID）',a?CS.staff(a):'未配置')+row('平台兜底客服',CS.account(CS.config().fallbackId)?.name||'未配置')+row('自动同步',CS.syncLabel()))+group('退换货信息',row('退换货地址',s.returnAddress||D.products.find(p=>p.shop===s.id)?.returnAddress,edit('修改','return')))+'<p class="tiny muted">各店铺共用平台企业 ID。平台在企业微信后台创建各店铺客服账号并添加接待成员，填写账号 ID 后提交校验；商品可另行填写接待客服 ID。</p>'+btn('查看客服账号与接待人员','customer-service-directory','','link');
+  bodies['客服配置']=group('',row('企业名称',CS.config().enterpriseName)+row('企业 ID（CorpID）',CS.config().corpId)+row('默认客服账号',a?.name||'未配置',edit('修改','service')+' '+btn('测试咨询','customer-service-test','','link'))+row('客服账号 ID（open_kfid）',a?.id)+row('客服链接',a?.url)+row('接待人员（成员 UserID）',a?CS.staff(a):'未配置')+row('兜底客服',CS.account(CS.config().fallbackId)?.name||'未配置')+row('自动同步',CS.syncLabel()),'<p class="tiny muted shop-customer-note">各店铺共用平台企业 ID。平台在企业微信后台创建各店铺客服账号并添加接待成员，填写账号 ID 后提交校验；商品可另行填写接待客服 ID。</p>'+btn('查看客服账号与接待人员','customer-service-directory','','link'))+group('退换货信息',row('退换货地址',s.returnAddress||D.products.find(p=>p.shop===s.id)?.returnAddress,edit('修改','return')));
  }
- if(active==='经营资质')content=shopQualificationSection(s);
- if(active==='捐赠协议')content=shopDonationSection(s);
- return merchantHeading('店铺管理',C.manage()?btn('开设新店铺','shop-draft','','btn primary'):'')+'<section class="card shop-info-card">'+tabs(names,active)+'<div class="shop-info-content">'+content+'</div></section>';
+ bodies['经营资质']=shopQualificationSection(s);
+ bodies['捐赠协议']=shopDonationSection(s);
+ return merchantHeading('店铺管理',btn('编辑','shop-module-edit','all','btn primary')+(C.manage()?btn('开设新店铺','shop-draft') :''))+'<section class="card shop-info-card organization-page">'+
+ '<nav class="tabs organization-section-nav" aria-label="店铺资料分区">'+names.map((name,i)=>'<button type="button" data-action="tab" data-id="'+name+'" aria-controls="shop-section-'+i+'"'+(S.tab===name?' class="tab active" aria-current="location"':' class="tab"')+'>'+name+'</button>').join('')+'</nav>'+
+ '<div class="organization-sections">'+names.map((name,i)=>'<section class="organization-section" id="shop-section-'+i+'" data-organization-section="'+name+'" aria-labelledby="shop-section-title-'+i+'"><div class="organization-section-head"><h2 id="shop-section-title-'+i+'">'+name+'</h2>'+btn('编辑','shop-module-edit',({'基本信息':'basic','经营资质':'qualifications','客服配置':'customer','捐赠协议':'donation'})[name],'link')+'</div><div class="organization-section-body">'+bodies[name]+'</div></section>').join('')+'</div></section>';
 }
 function shopQualificationInfo(q,live=true){
  if(q.source!=='organization'||!live)return q;
@@ -547,12 +650,33 @@ function shopQualificationInfo(q,live=true){
  return {...q,name:'营业执照',file:o.licenseFile,longTerm:!!o.licenseLongTerm,validUntil:o.licenseLongTerm?'':o.licenseValidUntil||'2030-12-31',organizationVersion:o.version||1};
 }
 function shopQualificationSection(s){
- const o=org(),application=D.applications.find(a=>a.org===S.org&&a.object===s.id&&a.type==='店铺经营资质变更'&&['草稿','已撤回','已驳回','待审批'].includes(a.status));
+ const o=org();
  const today=new Date().toLocaleDateString('sv-SE');
- const rows=(s.operatingQualifications||[]).map(item=>{const q=shopQualificationInfo(item);return tr([esc(q.source==='organization'?'营业执照':'自行上传')+(q.source==='organization'?'<div class="tiny muted">继承组织营业执照 · v'+esc(q.organizationVersion)+'</div>':''),esc(q.category),q.file||q.source==='organization'?btn(esc(q.file?.name||'营业执照'),'shop-qualification-file',s.id+'|effective|after|'+q.id,'link'):'未上传',esc(q.longTerm?'长期':q.validUntil),badge(!q.longTerm&&q.validUntil<today?'已过期':'已通过'),btn('修改','shop-qualification-edit',q.id,'link')]);});
- const draftItems=application&&application.status!=='待审批'?(application.snapshot.operatingQualifications||[]).filter(q=>JSON.stringify(q)!==JSON.stringify((s.operatingQualifications||[]).find(old=>old.id===q.id))):[];
- const draftLinks=draftItems.length?'<ul>'+draftItems.map(q=>'<li>'+esc(q.source==='organization'?'营业执照':'经营资质证明')+' · '+esc(q.category||'未选择品类')+' '+(q.file||q.source==='organization'?btn('查看材料','shop-qualification-file',s.id+'|'+application.id+'|after|'+q.id,'link'):'')+' '+btn('编辑此项','shop-qualification-edit',q.id,'link')+'</li>').join('')+'</ul>':'';
- return '<section class="shop-info-group"><h2>组织营业执照</h2>'+kv([['所属组织',o.name],['引用版本','v'+(o.version||1)+' · 当前生效'],['营业执照',o.licenseFile?.name||o.licenseName||'示例营业执照 · 已核验'],['有效期',o.licenseLongTerm?'长期':o.licenseValidUntil||'2030-12-31']])+'<div class="inline-actions">'+btn('查看营业执照','shop-license','','link')+btn(S.member?'查看组织资质':'前往组织维护','shop-qualification-organization','','link')+'</div><p class="tiny muted">营业执照由所属组织统一维护，本组织店铺共用生效资料。</p></section><section class="shop-info-group"><div class="flex wrap"><h2>本店经营资质</h2>'+btn('添加经营资质','shop-qualification-add','','btn primary')+'</div><p class="tiny muted">本店经营类目：'+esc(s.category)+'。可继承组织营业执照，或按适用品类自行上传资质，审批通过后生效。</p>'+(rows.length?table(['资质来源','适用品类','证明材料','有效期','审核状态','操作'],rows,false):'<div class="empty"><p>尚未添加经营资质</p><span class="tiny muted">选择继承组织营业执照，或自行上传本店所需材料。</span></div>')+(application?'<p class="shop-agreement-pending">'+badge(application.status)+' '+link('查看经营资质变更','application',application.id)+(['草稿','已撤回','已驳回'].includes(application.status)?' '+btn('继续编辑','resubmit',application.id,'link'):'')+'</p>':'')+draftLinks+'</section>';
+ const info=(label,value)=>'<div class="shop-info-row"><dt>'+esc(label)+'</dt><dd>'+value+'</dd></div>';
+ const effective=s.operatingQualifications||[];
+ const inherited=s.inheritOrganizationLicense??effective.some(q=>q.source==='organization');
+ const inheritanceOptions='<span class="shop-license-switch-label">'+(inherited?'继承':'不继承')+'</span>';
+ const rows=effective.filter(q=>q.source!=='organization').map(item=>{
+  const q=shopQualificationInfo(item),status=!q.longTerm&&q.validUntil<today?'已过期':'已通过';
+  const fileSource=s.id+'|effective|after|'+q.id;
+  return '<article class="shop-qualification-item" aria-label="'+esc(q.category||'经营资质')+'资质"><div class="shop-qualification-item-head"><h3>'+esc(q.category||'未选择品类')+'</h3>'+badge(status)+'</div><dl>'+info('证明材料',q.file?btn(esc(q.file.name),'shop-qualification-file',fileSource,'link'):'未上传')+info('有效期',esc(q.longTerm?'长期':q.validUntil||'未填写'))+'</dl></article>';
+ });
+ return '<section class="shop-info-group"><div class="shop-qualification-heading"><div class="shop-license-title"><h2>组织营业执照</h2>'+inheritanceOptions+'</div>'+btn(S.member?'查看组织资质':'前往组织维护','shop-qualification-organization','','link')+'</div><p class="tiny muted shop-qualification-note">营业执照由所属组织统一维护，选择继承后使用组织当前生效资料。</p><dl>'+info('所属组织',esc(o.name))+info('引用版本','v'+esc(o.version||1)+' · 当前生效')+info('营业执照','<span>'+esc(o.licenseFile?.name||o.licenseName||'示例营业执照 · 已核验')+'</span>'+btn('查看营业执照','shop-license','','link'))+info('有效期',esc(o.licenseLongTerm?'长期':o.licenseValidUntil||'2030-12-31'))+'</dl></section><section class="shop-info-group"><h2>本店经营资质</h2><p class="tiny muted shop-qualification-note">本店经营类目：'+esc(s.category)+'。按需添加本店所需资质，审批通过后生效。</p><div class="shop-qualification-list">'+(rows.length?rows.join(''):'<p class="tiny muted">尚未添加经营资质</p>')+'</div></section>';
+
+}
+function shopLicenseInheritance(value){
+ if(!isMerchant||!canUse('shop'))return;const shop=currentShop();if(!shop||!ensureEditable(shop))return;
+ const saved=D.applications.find(a=>a.org===S.org&&a.object===shop.id&&['店铺经营资质变更','店铺资料变更'].includes(a.type)&&['草稿','已撤回','已驳回'].includes(a.status));
+ const inherited=value==='true',current=saved?.snapshot.inheritOrganizationLicense??shop.inheritOrganizationLicense??(saved?.snapshot.operatingQualifications||shop.operatingQualifications||[]).some(q=>q.source==='organization');if(inherited===current)return;
+ const snapshot={...saved?.snapshot,operatingQualifications:saved?.snapshot.operatingQualifications||shop.operatingQualifications||[],inheritOrganizationLicense:inherited};
+ const error=submitApplication(saved?.type||'店铺经营资质变更',shop,snapshot,'draft');if(error){toast(error);return;}if(saved)saved.status='已替代';render();toast('继承设置已保存草稿，提交审批后生效');
+}
+function shopQualificationSubmit(id){
+ if(!isMerchant||!canUse('shop'))return;const shop=currentShop(),saved=D.applications.find(a=>a.id===id&&a.org===S.org&&a.object===shop?.id&&a.type==='店铺经营资质变更'&&['草稿','已撤回','已驳回'].includes(a.status));if(!shop||!saved||!ensureEditable(shop))return;
+ const items=(saved.snapshot.operatingQualifications||[]).filter(q=>q.source!=='organization');
+ if(items.some(q=>!q.category||!q.file||!q.longTerm&&(!q.validUntil||q.validUntil<new Date().toLocaleDateString('sv-SE')))){toast('请补全各项资质材料及有效期后提交');return;}
+ if(saved.snapshot.inheritOrganizationLicense){const o=org();if(!o.licenseLongTerm&&(o.licenseValidUntil||'2030-12-31')<new Date().toLocaleDateString('sv-SE')){toast('组织营业执照已过期，请先更新');return;}}
+ const error=submitApplication('店铺经营资质变更',shop,saved.snapshot);if(error){toast(error);return;}saved.status='已替代';closeOverlay();render();toast('经营资质已提交审批');
 }
 function shopQualificationEditor(id='',application){
  if(!isMerchant||!canUse('shop'))return;const s=currentShop();if(!s||!ensureEditable(s))return;
@@ -561,15 +685,15 @@ function shopQualificationEditor(id='',application){
  if(saved&&(saved.org!==owner||saved.object!==shopId||saved.type!=='店铺经营资质变更'||!['草稿','已撤回','已驳回'].includes(saved.status)))return;
  const savedStatus=saved?.status,items=JSON.parse(JSON.stringify(saved?.snapshot?.operatingQualifications||s.operatingQualifications||[]));
  const editingId=id||(application?.qualificationId||''),q=items.find(q=>q.id===editingId)||{id:'Q'+Date.now(),name:'',category:'',validUntil:'',longTerm:false};
- if(editingId&&!items.some(q=>q.id===editingId))return;
+ if(editingId&&(!items.some(q=>q.id===editingId)||q.source==='organization'))return;
  const categories=[...new Set(String(s.category||'').split(/[/、,，]/).map(x=>x.trim()).filter(Boolean))];
  const organizationVersion=org().version||1;
- const body=select('资质来源','source',[['upload','自行上传'],['organization','继承组织营业执照']],q.source||'upload')+select('适用品类','category',[['','请选择本店经营品类'],...new Set([...categories,...(q.category?[q.category]:[])])],q.category)+'<div class="full" data-inherited-license>'+kv([['来源组织',org().name],['生效版本','v'+organizationVersion],['有效期',org().licenseLongTerm?'长期':org().licenseValidUntil||'2030-12-31']])+btn('查看营业执照','shop-material-preview','licenseFile','link')+'<p class="tiny muted">继承组织当前生效营业执照，材料及有效期随组织生效资料更新。</p></div><div class="full form-grid" data-uploaded-qualification>'+field('有效期至','validUntil',q.validUntil,'date',!q.longTerm)+checkbox('长期有效','longTerm',q.longTerm)+'<label class="full">证明材料<input name="qualificationFile" type="file" accept="image/png,image/jpeg,application/pdf"><span class="local-file-note" data-upload-note="qualificationFile">'+esc((q.source==='organization'?'':q.file?.name)||'支持 JPG、PNG、PDF，最大 10 MB')+'</span></label></div>';
+ const body=select('适用品类','category',[['','请选择本店经营品类'],...new Set([...categories,...(q.category?[q.category]:[])])],q.category)+field('有效期至','validUntil',q.validUntil,'date',!q.longTerm)+checkbox('长期有效','longTerm',q.longTerm)+'<label class="full">证明材料<input name="qualificationFile" type="file" accept="image/png,image/jpeg,application/pdf"><span class="local-file-note" data-upload-note="qualificationFile">'+esc(q.file?.name||'支持 JPG、PNG、PDF，最大 10 MB')+'</span></label>';
  let upload;
  form(editingId?'修改经营资质':'添加经营资质',body,(data,intent)=>{
   if(S.org!==owner||S.demoAccount!==account||currentShop()?.id!==shopId||!canUse('shop'))return '人员权限或当前店铺已更新，请重新打开后操作。';
   if(JSON.stringify(s.operatingQualifications||[])!==baseline||saved&&saved.status!==savedStatus)return '资质版本已更新，请重新打开后操作。';
-  const inherited=data.source==='organization';
+  const inherited=false;
   if((inherited||items.some(item=>item.source==='organization'))&&(org().version||1)!==organizationVersion)return '组织营业执照版本已更新，请重新打开后操作。';
   if(!inherited&&upload.reading())return '文件读取中，请稍候。';if(!inherited&&upload.error())return upload.error();
   const next=inherited?shopQualificationInfo({id:q.id,category:data.category,source:'organization',organizationId:owner}):{id:q.id,source:'upload',category:data.category,longTerm:!!data.longTerm,validUntil:data.longTerm?'':data.validUntil||'',file:upload.files.qualificationFile};
@@ -578,16 +702,16 @@ function shopQualificationEditor(id='',application){
    if(!next.longTerm&&next.validUntil<new Date().toLocaleDateString('sv-SE'))return '资质已过期，请上传有效材料。';
   }
   const updated=(items.some(item=>item.id===q.id)?items.map(item=>item.id===q.id?next:item):[...items,next]).map(item=>shopQualificationInfo(item));
-  if(intent!=='draft'&&updated.some(item=>!categories.includes(item.category)||!item.file&&item.source!=='organization'||item.source==='organization'&&item.organizationId!==owner||!item.longTerm&&(!item.validUntil||item.validUntil<new Date().toLocaleDateString('sv-SE'))))return '请补全草稿中的各项资质，并更新已过期材料后提交。';
-  const error=submitApplication('店铺经营资质变更',s,{operatingQualifications:updated},intent);if(error)return error;
+  if(intent!=='draft'&&updated.filter(item=>item.source!=='organization').some(item=>!categories.includes(item.category)||!item.file&&item.source!=='organization'||item.source==='organization'&&item.organizationId!==owner||!item.longTerm&&(!item.validUntil||item.validUntil<new Date().toLocaleDateString('sv-SE'))))return '请补全草稿中的各项资质，并更新已过期材料后提交。';
+  const error=submitApplication('店铺经营资质变更',s,{...(saved&&Object.hasOwn(saved.snapshot,'inheritOrganizationLicense')?{inheritOrganizationLicense:saved.snapshot.inheritOrganizationLicense}:{}),operatingQualifications:updated},intent);if(error)return error;
   D.applications[0].qualificationId=q.id;D.applications[0].baseline.operatingQualifications=JSON.parse(JSON.stringify((s.operatingQualifications||[]).map(item=>shopQualificationInfo(item))));if(saved)saved.status='已替代';closeOverlay();render();toast(intent==='draft'?'经营资质草稿已保存':'经营资质已提交审批');
  },'提交审批',true);
  upload=bindShopUploads(['qualificationFile'],{qualificationFile:q.source==='organization'?undefined:q.file},10,['png','jpg','jpeg','pdf']);
- const check=$('#edit-form [name=longTerm]'),date=$('#edit-form [name=validUntil]'),source=$('#edit-form [name=source]'),sync=()=>{const inherited=source.value==='organization';$('[data-inherited-license]').hidden=!inherited;$('[data-uploaded-qualification]').style.display=inherited?'none':'grid';for(const input of $('[data-uploaded-qualification]').querySelectorAll('input'))input.disabled=inherited;date.disabled=inherited||check.checked;date.required=!inherited&&!check.checked;};check.addEventListener('change',sync);source.addEventListener('change',sync);sync();
+ const check=$('#edit-form [name=longTerm]'),date=$('#edit-form [name=validUntil]'),sync=()=>{date.disabled=check.checked;date.required=!check.checked;};check.addEventListener('change',sync);sync();
 }
 function shopQualificationFile(source){
  if(!isMerchant||!canUse('shop'))return;const [shopId,applicationId,side,id]=source.split('|'),s=currentShop();if(!s||s.id!==shopId||!['before','after'].includes(side))return;
- const application=applicationId==='effective'?null:D.applications.find(a=>a.id===applicationId&&a.org===S.org&&a.object===s.id&&a.type==='店铺经营资质变更');
+ const application=applicationId==='effective'?null:D.applications.find(a=>a.id===applicationId&&a.org===S.org&&a.object===s.id&&['店铺经营资质变更','店铺资料变更'].includes(a.type));
  if(applicationId!=='effective'&&!application)return;
  const items=application?(side==='before'?application.baseline:application.snapshot)?.operatingQualifications:s.operatingQualifications;
  const item=items?.find(q=>q.id===id);if(!item)return;const q=shopQualificationInfo(item,applicationId==='effective');
@@ -673,7 +797,70 @@ function cropShopLogo(file,image){
  });
 }
 
+function shopModuleEditor(scope='all',application=null){
+ if(!isMerchant||!canUse('shop'))return;
+ const shop=currentShop();if(!shop||!ensureEditable(shop))return;
+ const labels={basic:'基本信息',qualifications:'经营资质',customer:'客服配置',donation:'捐赠协议',all:'店铺资料'};if(!labels[scope])return;
+ const owner=S.org,shopId=shop.id,account=S.demoAccount,baseline=JSON.stringify(shop);
+ const saved=application||D.applications.find(a=>a.org===owner&&a.object===shopId&&a.snapshot?.configSection==='module:'+scope&&['草稿','已撤回','已驳回'].includes(a.status));
+ if(saved&&(saved.org!==owner||saved.object!==shopId||!['草稿','已撤回','已驳回'].includes(saved.status)))return;
+ const base={...shop,...saved?.snapshot},includes=key=>scope==='all'||scope===key,uploads=[];
+ const uploadField=(label,name,file,accept,note)=>'<label class="full">'+label+'<input type="file" name="'+name+'" accept="'+accept+'"><span class="local-file-note" data-upload-note="'+name+'">'+esc(file?.name||note)+'</span></label>';
+ const group=(key,body)=>'<section class="shop-module-edit-group full" data-shop-edit-section="'+key+'">'+(scope==='all'?'<h2>'+labels[key]+'</h2>':'')+'<div class="form-grid">'+body+'</div></section>';
+ let content='';
+ if(includes('basic'))content+=group('basic',field('店铺名称','name',base.name)+field('主营类目','category',base.category)+field('店铺简介','intro',base.intro||'','textarea',true,true)+shopLogoUploadField('shopLogoFile','店铺 logo','300 × 300 像素，JPG、PNG、WebP，最大 2 MB。'));
+ if(includes('qualifications'))content+=group('qualifications','<label class="full shop-module-inherit"><span>继承组织营业执照</span><span class="shop-module-switch-control"><input type="checkbox" role="switch" name="inheritOrganizationLicense"'+((base.inheritOrganizationLicense??base.operatingQualifications?.some(q=>q.source==='organization'))?' checked':'')+'><span class="shop-module-switch" aria-hidden="true"></span></span></label><div class="full" id="shop-module-qualifications"></div><button type="button" class="shop-module-add" id="shop-module-add-qualification"><span aria-hidden="true">＋</span> 添加经营资质</button>');
+ if(includes('customer'))content+=group('customer','<div class="full shop-module-customer-account"><label for="shop-module-customer-id">默认客服账号 ID（open_kfid） <span class="required-tip">*</span></label><div class="shop-customer-input"><input id="shop-module-customer-id" name="customerServiceId" value="'+esc(base.customerServiceId||CS.config().fallbackId)+'" required autocomplete="off">'+btn('测试账号','customer-service-test','','btn')+'</div></div>'+field('退换货地址','returnAddress',base.returnAddress||'','textarea',true,true));
+ if(includes('donation'))content+=group('donation',uploadField('原始协议文件','donationAgreementFile',base.donationAgreementFile,'.pdf,.doc,.docx,.png,.jpg,.jpeg','支持 PDF、Word、JPG、PNG，最大 20 MB')+field('每单捐协议正文','donationAgreement',base.donationAgreement||'','textarea',false,true));
+ const qualificationRows=[];let qualificationIndex=0;
+ const qualificationCategories=()=>[...new Set(String($('#edit-form [name=category]')?.value??base.category??'').split(/[/、,，]/).map(x=>x.trim()).filter(Boolean))];
+ form('编辑'+labels[scope],content,(data,intent)=>{
+  if(S.org!==owner||currentShop()?.id!==shopId||S.demoAccount!==account||!canUse('shop'))return '当前店铺或操作权限已变化，请重新打开。';
+  if(JSON.stringify(shop)!==baseline||saved&&!['草稿','已撤回','已驳回'].includes(saved.status))return '店铺资料版本已变化，请重新打开。';
+  for(const upload of uploads){if(upload.reading())return '文件读取中，请稍候。';if(upload.error())return upload.error();}
+  const snapshot={configSection:'module:'+scope};
+  if(includes('basic')){for(const key of ['name','category','intro'])snapshot[key]=String(data[key]||'').trim();snapshot.logo=logoUpload.files.shopLogoFile?.data||base.logo||'';}
+  if(includes('customer')){snapshot.customerServiceId=String(data.customerServiceId||'').trim();snapshot.returnAddress=String(data.returnAddress||'').trim();if(intent!=='draft'){const result=CS.verify(snapshot.customerServiceId);if(result.error)return result.error;}}
+  if(includes('donation')){snapshot.donationAgreement=String(data.donationAgreement||'');snapshot.donationAgreementFile=agreementUpload.files.donationAgreementFile;}
+  if(includes('qualifications')){
+   snapshot.inheritOrganizationLicense=!!data.inheritOrganizationLicense;
+   snapshot.operatingQualifications=qualificationRows.map(row=>({id:row.id,source:'upload',category:String(data[row.prefix+'category']||'').trim(),longTerm:!!data[row.prefix+'longTerm'],validUntil:data[row.prefix+'longTerm']?'':data[row.prefix+'validUntil']||'',file:row.upload.files[row.prefix+'file']}));
+   if(intent!=='draft'){
+    const categories=String(snapshot.category??shop.category).split(/[/、,，]/).map(x=>x.trim());
+    for(const [i,q] of snapshot.operatingQualifications.entries()){
+     const label='经营资质 '+(i+1)+'：';
+     if(!q.category)return label+'请选择适用品类。';
+     if(!categories.includes(q.category))return label+'适用品类须为本店主营类目（'+categories.join('、')+'），请重新选择。';
+     if(!q.file)return label+'请上传证明材料。';
+     if(!q.longTerm&&!q.validUntil)return label+'请填写有效期或勾选长期有效。';
+     if(!q.longTerm&&q.validUntil<new Date().toLocaleDateString('sv-SE'))return label+'材料已过期，请更新有效期及材料。';
+    }
+    if(snapshot.inheritOrganizationLicense&&!org().licenseLongTerm&&(org().licenseValidUntil||'2030-12-31')<new Date().toLocaleDateString('sv-SE'))return '组织营业执照已过期，请先更新。';
+   }
+  }
+  const error=submitApplication('店铺资料变更',shop,snapshot,intent);if(error)return error;replaceSavedApplication(saved);closeOverlay();render();toast(intent==='draft'?'店铺资料草稿已保存':'店铺资料变更已提交审批');
+ },'提交审批',true);
+ $('#overlay .dialog').classList.add('shop-module-editor');
+ let logoUpload,agreementUpload;
+ if(includes('basic')){logoUpload=bindShopUploads(['shopLogoFile'],{},2,['png','jpg','jpeg','webp'],shopLogoImageIssue);uploads.push(logoUpload);const input=$('#edit-form [name=shopLogoFile]');input.dataset.shopName=base.name||'';if(base.logo)input.closest('label').querySelector('.media-preview').innerHTML='<img class="application-change-image" src="'+esc(base.logo)+'" alt="店铺 logo">';}
+ if(includes('donation')){agreementUpload=bindShopUploads(['donationAgreementFile'],base,20,['pdf','doc','docx','png','jpg','jpeg']);uploads.push(agreementUpload);}
+ if(includes('qualifications')){
+  const add=q=>{const index=qualificationIndex++,prefix='moduleQ'+index+'_',id=q?.id||'Q'+Date.now()+'_'+index;
+   const container=$('#shop-module-qualifications');
+   container.insertAdjacentHTML('beforeend','<div class="shop-module-qualification" data-qualification-row="'+prefix+'"><div class="shop-module-qualification-head"><h3>经营资质 <span data-qualification-number>'+(qualificationRows.length+1)+'</span></h3><button type="button" class="link shop-module-remove">删除</button></div><div class="shop-module-qualification-fields">'+select('适用品类',prefix+'category',[['','请选择本店经营品类'],...new Set([...qualificationCategories(),...(q?.category?[q.category]:[])])],q?.category||'')+'<div class="shop-module-validity">'+field('有效期至',prefix+'validUntil',q?.validUntil||'','date',false)+checkbox('长期有效',prefix+'longTerm',q?.longTerm)+'</div></div><div class="shop-module-material"><span>证明材料</span><label class="shop-module-upload"><input type="file" name="'+prefix+'file" accept=".png,.jpg,.jpeg,.pdf"><span class="shop-module-upload-button">上传材料</span></label><span class="local-file-note" data-upload-note="'+prefix+'file">'+esc(q?.file?.name||'JPG、PNG、PDF，最大 10 MB')+'</span></div></div>');
+   const card=container.lastElementChild,upload=bindShopUploads([prefix+'file'],{[prefix+'file']:q?.file},10,['png','jpg','jpeg','pdf']),row={id,prefix,upload};
+   uploads.push(upload);qualificationRows.push(row);
+   card.querySelector('.shop-module-remove').addEventListener('click',()=>{qualificationRows.splice(qualificationRows.indexOf(row),1);uploads.splice(uploads.indexOf(upload),1);card.remove();container.querySelectorAll('[data-qualification-number]').forEach((el,i)=>{el.textContent=i+1;});$('#form-error').textContent='';});
+   const check=$('#edit-form [name='+prefix+'longTerm]'),date=$('#edit-form [name='+prefix+'validUntil]'),sync=()=>{date.disabled=check.checked;};check.addEventListener('change',sync);sync();
+  };
+  const syncCategories=()=>{for(const row of qualificationRows){const input=$('#edit-form [name='+row.prefix+'category]'),value=input.value,categories=qualificationCategories();input.innerHTML=[['','请选择本店经营品类'],...categories.map(x=>[x,x]),...(value&&!categories.includes(value)?[[value,value+'（非本店主营类目）']]:[])].map(([v,t])=>'<option value="'+esc(v)+'"'+(v===value?' selected':'')+'>'+esc(t)+'</option>').join('');}};
+  $('#edit-form [name=category]')?.addEventListener('input',syncCategories);
+  for(const q of base.operatingQualifications||[])if(q.source!=='organization')add(q);
+  $('#shop-module-add-qualification').addEventListener('click',()=>add());
+ }
+}
 function shopConfigEditor(kind,application=null){
+ if(kind?.startsWith('module:'))return shopModuleEditor(kind.slice(7),application);
  if(!isMerchant)return;const s=currentShop();if(!s||!ensureEditable(s))return;
  const saved=application?editableApplication('店铺资料变更',s.id,application):D.applications.find(a=>a.org===S.org&&a.object===s.id&&a.type==='店铺资料变更'&&a.snapshot?.configSection===kind&&['草稿','已撤回','已驳回'].includes(a.status)),base={...s,...saved?.snapshot};
  const definitions={name:['修改店铺名称',field('店铺名称','name',base.name)],category:['修改主营类目',field('主营类目','category',base.category)],intro:['修改店铺简介',field('店铺简介','intro',base.intro||'','textarea',true,true)],logo:['修改店铺 logo',shopLogoUploadField('shopLogoFile','店铺 logo','成图 300 × 300 像素，超出可裁剪；JPG、PNG、WebP 静态图片，最大 2 MB。',true)],service:['修改店铺默认客服','<label class="full"><span>默认客服账号 ID（open_kfid） <span class="required-tip">*</span></span><input name="customerServiceId" required value="'+esc(base.customerServiceId||CS.config().fallbackId)+'" placeholder="请输入微信客服账号 ID" autocomplete="off"></label><p class="full tiny muted">填写在平台企业微信中创建的客服账号 ID。提交时校验企业归属、接口权限、客服链接及接待人员；账号与人员信息每 5 分钟自动更新。</p>'],return:['修改退换货地址',field('退换货地址','returnAddress',base.returnAddress||D.products.find(p=>p.shop===s.id)?.returnAddress||'','textarea',true,true)]};
@@ -750,7 +937,7 @@ function bindShopUploads(keys,base,maxMB,extensions,validateFile=null){
  return {files:state.files,reading:()=>state.pending.size>0,error:()=>Object.values(state.errors)[0]};
 }
 function shopFile(source){
- if(!isMerchant)return;const parts=source.split(':'),key=parts.pop();if(!['donationAgreementFile','identityFront','identityBack','licenseFile','shopLogo','categoryProof'].includes(key))return;
+ const parts=source.split(':'),key=parts.pop();if(!isMerchant&&!['foundationCertificate','publicQualificationProof'].includes(key))return;if(!['donationAgreementFile','identityFront','identityBack','licenseFile','shopLogo','categoryProof','foundationCertificate','publicQualificationProof'].includes(key))return;
  const application=parts.length?D.applications.find(a=>a.id===parts[0]&&a.org===S.org):null;
  const file=parts.length?application?.snapshot?.[key]:(key==='donationAgreementFile'?currentShop()?.[key]:org()[key]);if(file?.data)previewShopFile(file);
 }
@@ -763,7 +950,7 @@ function previewShopFile(file){
 function shopDonationSection(s){
  const pendingFile=D.applications.find(a=>a.org===S.org&&a.object===s.id&&a.type==='店铺捐赠协议变更'&&['草稿','已撤回','已驳回','待审批'].includes(a.status));
  const file=s.donationAgreementFile;
- return '<section class="shop-info-group"><h2>捐赠协议</h2><dl><div class="shop-info-row"><dt>原始协议文件</dt><dd><div class="shop-info-value">'+(file?btn(esc(file.name),'shop-file','donationAgreementFile','link'):'未上传')+'</div><div class="shop-info-action">'+btn(file?'重新上传':'上传协议','shop-donation-upload','','link')+'</div></dd></div></dl>'+(pendingFile?'<p class="shop-agreement-pending">'+badge(pendingFile.status)+' '+link(pendingFile.snapshot.donationAgreementFile?.name||'协议文件草稿','application',pendingFile.id)+'</p>':'')+'</section><section class="shop-info-group"><h2>每单捐协议</h2><p class="tiny muted">客户端展示的协议正文</p><div class="shop-agreement-actions">'+btn('编辑正文','shop-donation-edit','','link')+btn('客户端预览','shop-donation-preview','','link')+'</div><div class="document-text shop-donation-text">'+esc(s.donationAgreement||'尚未发布每单捐协议')+'</div></section>';
+ return '<section class="shop-info-group"><h2>原始协议</h2><dl><div class="shop-info-row"><dt>原始协议文件</dt><dd><div class="shop-info-value">'+(file?btn(esc(file.name),'shop-file','donationAgreementFile','link'):'未上传')+'</div><div class="shop-info-action">'+''+'</div></dd></div></dl>'+(pendingFile?'<p class="shop-agreement-pending">'+badge(pendingFile.status)+' '+link(pendingFile.snapshot.donationAgreementFile?.name||'协议文件草稿','application',pendingFile.id)+'</p>':'')+'</section><section class="shop-info-group shop-donation-inline" aria-label="每单捐协议客户端展示">'+shopDonationPreviewContent(s.donationAgreement||'尚未发布每单捐协议')+'</section>';
 }
 function shopDonationUpload(application){
  if(!isMerchant)return;const s=currentShop();if(!s||!ensureEditable(s))return;const saved=application||D.applications.find(a=>a.org===S.org&&a.object===s.id&&a.type==='店铺捐赠协议变更'&&['草稿','已撤回','已驳回'].includes(a.status)),base={...s,...saved?.snapshot};let upload;
@@ -790,14 +977,14 @@ function organizationPage(){
  const changes=canManageMembers()?organizationChanges():null,review=pending(o.id);
  S.tab=names.includes(S.tab)?S.tab:'基本资料';
  const bodies={
-  '基本资料':organizationInfo([['组织名称',o.name],['组织类型',isMerchant?'商家':'基金会'],['入驻状态',o.status],['联系人员',o.contactName||o.admin],['联系电话',o.contact],['办公地址',o.address],['组织管理员',o.admin],...(!isMerchant?[['主要公益领域',(o.foundationFields||[]).join('、')||'待完善'],['机构宗旨',o.mission||'待完善']]:[['邀请方',o.inviter]])])
+  '基本资料':organizationInfo([['组织名称',o.name],['组织类型',isMerchant?'商家':'基金会'],['入驻状态',o.status],['联系人',o.contactName||o.admin],['联系电话',o.contact],['办公地址',o.address],['组织管理员',o.admin],...(!isMerchant?[['机构宗旨',o.mission||'待完善'],['主要公益领域',(o.foundationFields||[]).join('、')||'待完善']]:[['邀请方',o.inviter]])])
  };
- if(names.includes('资质材料'))bodies['资质材料']=isMerchant?merchantQualifications():organizationInfo([['统一社会信用代码',o.code],...window.FoundationProfile.rows(o)]);
- if(names.includes('收款资料'))bodies['收款资料']='<p class="organization-section-note">'+(isMerchant?'本组织账户用于接收商品订单分账。':'本机构直接接收项目捐赠，并接收商品订单公益分账。')+'接收方全称引用组织名称，变更账户时核对。</p>'+organizationInfo([['微信商户号',paymentAccountText(o.bank,false)],['商品订单收款主体',D.paymentCollection.name]]);
+ if(names.includes('资质材料'))bodies['资质材料']=isMerchant?merchantQualifications():organizationInfo([['统一社会信用代码',o.code],...window.FoundationProfile.rows(o,{includeFields:false})]);
+ if(names.includes('收款资料'))bodies['收款资料']='<p class="organization-section-note">'+(isMerchant?'本组织账户用于接收商品订单分账。':'本机构直接接收项目捐赠，并接收商品订单公益分账。')+'接收方全称引用组织名称，变更账户时核对。</p>'+organizationInfo([...(!isMerchant?[['分账接收方全称',o.name]]:[]),['微信商户号',paymentAccountText(o.bank,false)],...(isMerchant?[['商品订单收款主体',D.paymentCollection.name]]:[])]);
  if(names.includes('成员管理'))bodies['成员管理']=table(['姓名','手机号','组织身份','授权店铺 / 功能','备注','操作'],D.members.filter(m=>m.org===S.org).map(m=>tr([esc(m.name)+(m.permissionExample?'<div class="member-permission-example">'+esc(m.permissionExample)+'</div>':''),esc(m.phone),badge(m.role),m.role==='组织管理员'?'本组织全部店铺及功能':isMerchant?C.memberSummary(m):esc((m.permissions||[]).join('、')),'<div class="member-remark">'+(m.remark?'<span>'+esc(m.remark)+'</span>':'<span class="muted">—</span>')+(canManageMembers()?link(m.remark?'修改备注':'添加备注','member-remark',m.id):'')+'</div>',m.role==='组织成员'&&canManageMembers()?'<span class="organization-member-actions">'+(isMerchant?link('设置权限','cp-member',m.id):'')+link('删除成员','member-remove',m.id)+'</span>':'—'])))+'<p class="description">成员加入申请在审批中心处理。</p>';
  return heading('组织管理','查看组织资料、分账接收账户及成员。',canManageMembers()?(review?btn('查看待审变更','application',review.id):btn('编辑','org-edit',S.tab,'btn primary')):'')+(changes?.applications.length&&!review?'<div class="organization-change-summary" role="status">已保存修改：'+esc(changes.sections.join('、'))+'。可继续编辑，统一提交后审批生效。</div>':'')+'<section class="card organization-page">'+
  '<nav class="tabs organization-section-nav" aria-label="组织资料分区">'+names.map((name,i)=>'<button type="button" data-action="tab" data-id="'+name+'" aria-controls="organization-section-'+i+'"'+(S.tab===name?' class="tab active" aria-current="location"':' class="tab"')+'>'+name+'</button>').join('')+'</nav>'+
- '<div class="organization-sections">'+names.map((name,i)=>'<section class="organization-section" id="organization-section-'+i+'" data-organization-section="'+name+'" aria-labelledby="organization-section-title-'+i+'"><div class="organization-section-head"><h2 id="organization-section-title-'+i+'">'+name+'</h2>'+(name==='成员管理'?(isMerchant&&canManageMembers()?btn('角色权限设置','cp-roles'):'')+btn('查看加入申请','nav','approvals'):'')+'</div>'+bodies[name]+'</section>').join('')+'</div></section>';
+ '<div class="organization-sections">'+names.map((name,i)=>'<section class="organization-section" id="organization-section-'+i+'" data-organization-section="'+name+'" aria-labelledby="organization-section-title-'+i+'"><div class="organization-section-head"><h2 id="organization-section-title-'+i+'">'+name+'</h2>'+(name==='成员管理'?'<div class="inline-actions">'+(isMerchant&&canManageMembers()?btn('角色权限设置','cp-roles'):'')+btn('查看加入申请','nav','approvals')+(canManageMembers()?btn('编辑','org-members-edit','','link'):'')+'</div>':canManageMembers()?(review?btn('查看待审变更','application',review.id,'link'):btn('编辑','org-section-edit',name,'link')):'')+'</div><div class="organization-section-body">'+bodies[name]+'</div></section>').join('')+'</div></section>';
 }
 let organizationScrollCleanup=()=>{},organizationScrollTarget=null;
 function organizationScrollOffset(){
@@ -815,14 +1002,14 @@ function activateOrganizationSection(name,replace=true){
 }
 function scrollOrganizationSection(name){
  const section=[...document.querySelectorAll('[data-organization-section]')].find(el=>el.dataset.organizationSection===name);
- if(S.page!=='organization'||!section)return;
+ if(!['organization','shop'].includes(S.page)||!section)return;
  activateOrganizationSection(name,false);
  window.scrollTo({top:Math.max(0,window.scrollY+section.getBoundingClientRect().top-organizationScrollOffset()),behavior:'instant'});
  organizationScrollTarget={section,y:window.scrollY};
 }
 function setupOrganizationScroll(){
  organizationScrollCleanup();
- const nav=$('.organization-section-nav');if(S.page!=='organization'||!nav)return;
+ const nav=$('.organization-section-nav');if(!['organization','shop'].includes(S.page)||!nav)return;
  const sections=[...document.querySelectorAll('[data-organization-section]')],initial=S.tab;
  let frame=0,initialFrame=0;
  const update=()=>{
@@ -838,7 +1025,7 @@ function setupOrganizationScroll(){
  };
  const schedule=()=>{if(!frame)frame=requestAnimationFrame(update);};
  window.addEventListener('scroll',schedule,{passive:true});window.addEventListener('resize',schedule);
- initialFrame=requestAnimationFrame(()=>{if(!nav.isConnected)return;if(initial!=='基本资料')scrollOrganizationSection(initial);update();});
+ initialFrame=requestAnimationFrame(()=>{if(!nav.isConnected)return;if(initial!==sections[0]?.dataset.organizationSection)scrollOrganizationSection(initial);update();});
  organizationScrollCleanup=()=>{organizationScrollTarget=null;window.removeEventListener('scroll',schedule);window.removeEventListener('resize',schedule);cancelAnimationFrame(frame);cancelAnimationFrame(initialFrame);};
 }
 for(const a of D.applications)if(a.status==='已撤回'){a.withdrawnAt=a.withdrawnAt||a.date;a.approvalStages=a.approvalStages||String(a.stage||'').split(' → ');a.status='草稿';a.stage='未提交';}
@@ -913,7 +1100,12 @@ function activityTodos(a){
  return todos;
 }
 function activityTodoLinks(a){const todos=activityTodos(a);return todos.length?todos.map(t=>btn(badge(t.label+(t.count?' '+t.count+' 条':'')),'activity-todo',a.id+':'+t.type,'link')).join(' '):'<span class="muted">—</span>';}
-function activitiesList(p,kind){const q=f(),rows=D.activities.filter(a=>scopedProject(a.project)&&(!p||a.project===p.id)&&a.kind===kind&&matching(a,q.q)&&(!q.template||a.template===q.template)&&(!q.status||a.status===q.status)&&(!q.issue||activityTodos(a).some(t=>q.issue==='yes'||t.type===q.issue)));return '<div class="toolbar-line"><span class="tiny muted">'+esc(p?p.name:org().name)+' / '+kind+'</span>'+btn(icon('plus')+'新建'+kind,'activity-new',kind,'btn primary')+'</div>'+filterBar((!isMerchant&&['activities','actions'].includes(S.page)?select('所属项目','activityProject',myProjects().map(p=>[p.id,p.name]),S.project,true):'')+select('模板类型','template',kind==='公益行动'?['报名类','宣发类']:['报名类','捐款类','捐赠参会类','宣发类'],q.template,true)+select('状态','status',['草稿','待审批','已发布','已停止报名','已结束','已取消'],q.status,true)+select('待处理','issue',[['yes','仅看待处理'],['registration','报名待审核'],...(kind==='项目活动'?[['meeting','参会信息待发布']]:[])],q.issue,true),(kind==='项目活动'?'搜索活动名称':'搜索行动名称'))+table(['标题 / 类型','所属项目','状态 / 版本','参与情况','开始 / 结束时间','待处理','操作'],rows.map(a=>{const regs=D.registrations.filter(r=>r.activity===a.id);return tr([link(a.name,'activity',a.id)+'<div class="tiny muted">'+esc(a.template)+' · '+a.id+'</div>',link(scopedProject(a.project)?.name||a.project,'project',a.project),badge(a.status)+'<div class="tiny muted">v'+a.version+'</div>',a.template==='捐款类'?money(D.donations.filter(d=>d.activity===a.id&&d.status==='支付成功').reduce((n,d)=>n+d.amount,0)):regs.length+' 人',a.template==='捐款类'?'—':esc(a.start?.replace('T',' ')||'—')+'<div class="tiny muted">至 '+(a.end?.replace('T',' ')||'—')+'</div>',activityTodoLinks(a),activityListActions(a)]);}));}
+function activityMatchesIssue(a,issue){return !issue||activityTodos(a).some(t=>issue==='yes'||t.type===issue);}
+function activityQuickFilters(rows,kind){
+ const active=f().issue||'',options=[['','全部'+(kind==='公益行动'?'行动':'活动')],['yes','待处理'],['registration','报名待审核'],...(kind==='项目活动'?[['meeting','参会信息待发布']]:[])];
+ return '<div class="quick-filters activity-quick-filters" role="group" aria-label="'+esc(kind)+'快捷筛选">'+options.map(([value,label])=>'<button type="button" class="quick-chip'+(active===value?' active':'')+'" data-action="activity-quick" data-id="'+value+'" aria-pressed="'+(active===value)+'">'+label+'<b>'+rows.filter(a=>activityMatchesIssue(a,value)).length+'</b></button>').join('')+'</div>';
+}
+function activitiesList(p,kind){const q=f(),rows=D.activities.filter(a=>scopedProject(a.project)&&(!p||a.project===p.id)&&a.kind===kind&&matching(a,q.q)&&(!q.template||a.template===q.template)&&(!q.status||a.status===q.status)),filtered=rows.filter(a=>activityMatchesIssue(a,q.issue));return activityQuickFilters(rows,kind)+'<div class="toolbar-line"><span class="tiny muted">'+esc(p?p.name:org().name)+' / '+kind+'</span>'+btn(icon('plus')+'新建'+kind,'activity-new',kind,'btn primary')+'</div>'+filterBar((!isMerchant&&['activities','actions'].includes(S.page)?select('所属项目','activityProject',myProjects().map(p=>[p.id,p.name]),S.project,true):'')+select('模板类型','template',kind==='公益行动'?['报名类','宣发类']:['报名类','捐款类','捐赠参会类','宣发类'],q.template,true)+select('状态','status',['草稿','待审批','已发布','已停止报名','已结束','已取消'],q.status,true)+select('待处理','issue',[['yes','仅看待处理'],['registration','报名待审核'],...(kind==='项目活动'?[['meeting','参会信息待发布']]:[])],q.issue,true),(kind==='项目活动'?'搜索活动名称':'搜索行动名称'))+table(['标题 / 类型','所属项目','状态 / 版本','参与情况','开始 / 结束时间','待处理','操作'],filtered.map(a=>{const regs=D.registrations.filter(r=>r.activity===a.id);return tr([link(a.name,'activity',a.id)+'<div class="tiny muted">'+esc(a.template)+' · '+a.id+'</div>',link(scopedProject(a.project)?.name||a.project,'project',a.project),badge(a.status)+'<div class="tiny muted">v'+a.version+'</div>',a.template==='捐款类'?money(D.donations.filter(d=>d.activity===a.id&&d.status==='支付成功').reduce((n,d)=>n+d.amount,0)):regs.length+' 人',a.template==='捐款类'?'—':esc(a.start?.replace('T',' ')||'—')+'<div class="tiny muted">至 '+(a.end?.replace('T',' ')||'—')+'</div>',activityTodoLinks(a),activityListActions(a)]);}));}
 function activityTabs(a){return ['基本信息',...(a.template==='报名类'?['报名管理','捐赠记录']:a.template==='捐款类'?['捐赠记录']:a.template==='捐赠参会类'?['捐赠记录','参会管理']:['参与信息','捐赠记录']),...(a.status==='已结束'?['资讯记录']:[]),'通知记录','操作记录'];}
 function registrationGroupDetail(a){
   if(!['报名类','捐赠参会类'].includes(a.template))return '';
@@ -1251,7 +1443,8 @@ function productSplitIssue(p){
  return '';
 }
 function productOperatingQualificationIssue(p){
- const shop=D.shops.find(s=>s.id===p.shop),items=shop?.operatingQualifications||[];
+ const shop=D.shops.find(s=>s.id===p.shop),inherited=shop?.inheritOrganizationLicense??(shop?.operatingQualifications||[]).some(q=>q.source==='organization'),items=(shop?.operatingQualifications||[]).filter(q=>q.source!=='organization');
+ if(inherited)items.push(shopQualificationInfo({source:'organization',organizationId:shop.org,category:shop.category}));
  if(!items.length)return '请先在店铺管理完善并核验经营资质。';
  for(const item of items){const q=shopQualificationInfo(item);if(!q.category||!q.file&&q.source!=='organization'||q.source==='organization'&&q.organizationId!==shop.org||!q.longTerm&&(!q.validUntil||q.validUntil<new Date().toLocaleDateString('sv-SE'))||q.status&&q.status!=='已通过')return '店铺经营资质不完整、未核验或已到期，请更新后提交。';}
  return '';
@@ -1768,14 +1961,14 @@ function setupWorkspaceSticky(){
  if(card)card.classList.add('workspace-sticky-card');
  bars.forEach((bar,i)=>{bar.classList.add('workspace-sticky-tabs');bar.style.zIndex=String(18-i);});
  const update=()=>{
-  const top=Math.ceil(topbar?.getBoundingClientRect().height||0);
+  const top=topbar?.getBoundingClientRect().height||0;
   heading.style.setProperty('--workspace-sticky-top',top+'px');
   // Include the main content's top spacing in the sticky box from the first pixel.
   heading.style.setProperty('--workspace-heading-inset',getComputedStyle(main).paddingTop);
   const gap=parseFloat(getComputedStyle(heading).marginBottom)||0;
   heading.style.setProperty('--workspace-heading-gap',gap+'px');
-  let offset=top+Math.ceil(heading.getBoundingClientRect().height)+gap;
-  for(const bar of bars){bar.style.setProperty('--workspace-sticky-top',offset+'px');offset+=Math.ceil(bar.getBoundingClientRect().height);}
+  let offset=top+heading.getBoundingClientRect().height+gap;
+  for(const bar of bars){bar.style.setProperty('--workspace-sticky-top',offset+'px');offset+=bar.getBoundingClientRect().height;}
  };
  workspaceStickyObserver=new ResizeObserver(update);
  [topbar,heading,...bars].filter(Boolean).forEach(el=>workspaceStickyObserver.observe(el));
@@ -2121,7 +2314,7 @@ function refund(id){
   record(o.id,'确认退款 '+money(request.amount)+'，等待渠道核验',o.project);C.persist();if(fromList||orderActionContext()){closeOverlay();render();}else refreshOrderAction(id,'售后信息');toast('退款申请已记录，当前为处理中');
  },'确认并发起退款');$('#overlay .dialog').classList.add('merchant-confirm');upload=bindShopUploads(['merchantEvidence'],{},10,['png','jpg','jpeg']);updateRefundInspectionGuard(o);
 }
-const applicationFieldNames={logo:'店铺标识',shopLogo:'店铺标识文件',categoryProof:'经营资质证明',qualificationSource:'资质来源',qualificationCategory:'适用品类',qualificationValidUntil:'资质有效期',qualificationLongTerm:'资质长期有效',name:'名称',intro:'简介',body:'介绍',location:'执行地',end:'结束时间',start:'开始时间',deadline:'报名截止时间',experience:'报名资料：公益经历',skills:'报名资料：专项技能',skillsInput:'专项技能填写方式',skillsOptions:'专项技能选项',promise:'公益承诺',promisor:'贡献承诺主体',target:'筹款目标',contact:'联系人',contactPhone:'联系电话',service:'客服配置',customerServiceId:'接待客服',donationAgreement:'每单捐协议正文',donationAgreementFile:'捐赠协议原始文件',entrantName:'入驻人姓名',entrantIdentity:'入驻人身份证号',identityFront:'身份证人像面',identityBack:'身份证国徽面',identityValidUntil:'身份证有效期',identityLongTerm:'身份证长期有效',licenseFile:'营业执照',licenseName:'营业执照文件名',licenseValidUntil:'营业执照有效期',licenseLongTerm:'营业执照长期有效',code:'统一社会信用代码',registeredAddress:'注册地址',businessRoles:'业务身份',contactName:'联系人',price:'售价',stock:'库存',fund:'公益金额',association:'商协会分账金额',university:'高校分账金额',merchantCode:'规格编码',parameters:'商品参数',carouselMedia:'项目轮播素材',videos:'视频',carouselImages:'商品轮播图',detailImages:'商品详情图',specs:'商品规格',skus:'规格',splitRecipients:'分账对象',amount:'每件金额',project:'关联项目',returnAddress:'退货地址',donationMode:'公益分配模式',donationRatio:'目标捐赠比例（%）',planStock:'计划库存',randomMin:'随机公益金额下限',randomMax:'随机公益金额上限',category:'经营类目',admin:'联系人',address:'办公地址',bank:'微信支付商户号',bankAccountName:'分账接收方全称',mission:'机构宗旨',format:'参会形式',capacity:'名额',limit:'报名上限',options:'捐赠金额',donationOptions:'捐赠金额',drawMin:'心意签金额下限',drawMax:'心意签金额上限',minimum:'最低捐赠金额',minimumMode:'最低金额方式',amountModes:'金额方式',amountMode:'金额方式',allowCustom:'自定义金额',cohost:'协办方',organizer:'承办方',images:'图片',minimumDonation:'最低捐赠金额',shippingFee:'运费',shippingTemplateId:'运费模板',shippingTemplate:'运费模板',shippingHours:'承诺发货时间（小时）',sevenDayReturn:'7天无理由退货',rules:'地区计费规则',regions:'配送地区',firstCount:'首件数量',firstFee:'首件运费',extraCount:'续件数量',extraFee:'续件运费',pickupAfter:'现场领取后支持售后',returnAuto:'退货免审批',image:'规格图片',values:'规格值',value:'参数值',phone:'手机号',donate:'接受捐赠',publication:'发布设置',limit:'报名上限'};
+const applicationFieldNames={logo:'店铺标识',shopLogo:'店铺标识文件',categoryProof:'经营资质证明',inheritOrganizationLicense:'继承组织营业执照',qualificationSource:'资质来源',qualificationCategory:'适用品类',qualificationValidUntil:'资质有效期',qualificationLongTerm:'资质长期有效',name:'名称',intro:'简介',body:'介绍',location:'执行地',end:'结束时间',start:'开始时间',deadline:'报名截止时间',experience:'报名资料：公益经历',skills:'报名资料：专项技能',skillsInput:'专项技能填写方式',skillsOptions:'专项技能选项',promise:'公益承诺',promisor:'贡献承诺主体',target:'筹款目标',contact:'联系人',contactPhone:'联系电话',service:'客服配置',customerServiceId:'接待客服',donationAgreement:'每单捐协议正文',donationAgreementFile:'捐赠协议原始文件',entrantName:'入驻人姓名',entrantIdentity:'入驻人身份证号',identityFront:'身份证人像面',identityBack:'身份证国徽面',identityValidUntil:'身份证有效期',identityLongTerm:'身份证长期有效',licenseFile:'营业执照',licenseName:'营业执照文件名',licenseValidUntil:'营业执照有效期',licenseLongTerm:'营业执照长期有效',code:'统一社会信用代码',registeredAddress:'注册地址',businessRoles:'业务身份',contactName:'联系人',price:'售价',stock:'库存',fund:'公益金额',association:'商协会分账金额',university:'高校分账金额',merchantCode:'规格编码',parameters:'商品参数',carouselMedia:'项目轮播素材',videos:'视频',carouselImages:'商品轮播图',detailImages:'商品详情图',specs:'商品规格',skus:'规格',splitRecipients:'分账对象',amount:'每件金额',project:'关联项目',returnAddress:'退货地址',donationMode:'公益分配模式',donationRatio:'目标捐赠比例（%）',planStock:'计划库存',randomMin:'随机公益金额下限',randomMax:'随机公益金额上限',category:'经营类目',admin:'联系人',address:'办公地址',bank:'微信支付商户号',bankAccountName:'分账接收方全称',mission:'机构宗旨',format:'参会形式',capacity:'名额',limit:'报名上限',options:'捐赠金额',donationOptions:'捐赠金额',drawMin:'心意签金额下限',drawMax:'心意签金额上限',minimum:'最低捐赠金额',minimumMode:'最低金额方式',amountModes:'金额方式',amountMode:'金额方式',allowCustom:'自定义金额',cohost:'协办方',organizer:'承办方',images:'图片',minimumDonation:'最低捐赠金额',shippingFee:'运费',shippingTemplateId:'运费模板',shippingTemplate:'运费模板',shippingHours:'承诺发货时间（小时）',sevenDayReturn:'7天无理由退货',rules:'地区计费规则',regions:'配送地区',firstCount:'首件数量',firstFee:'首件运费',extraCount:'续件数量',extraFee:'续件运费',pickupAfter:'现场领取后支持售后',returnAuto:'退货免审批',image:'规格图片',values:'规格值',value:'参数值',phone:'手机号',donate:'接受捐赠',publication:'发布设置',limit:'报名上限'};
 function applicationDiffRows(before,after,prefix=''){
  const ignored=new Set(['qualificationName','agreement','sms','orgSection','orgSections','configSection','specKey','imageOverride','withImages','id','org','shop','art','review','status','version','key','imageOverride','custom']);
  const value=v=>v==null||v===''?'—':typeof v==='boolean'?(v?'是':'否'):esc(v);
@@ -2131,7 +2324,7 @@ function applicationDiffRows(before,after,prefix=''){
   let prev=before?.[key];if(prev==null&&key==='donationMode')prev='fixed';if(prev==null&&['pickupAfter','returnAuto'].includes(key))prev=false;if(prev==null&&key==='splitRecipients')prev=[{id:'A001',amount:before?.association||0},{id:'U001',amount:before?.university||0}];if(JSON.stringify(prev)===JSON.stringify(next)||((prev==null||prev==='')&&(next==null||next==='')))continue;
   const label=prefix+(applicationFieldNames[key]||key);
   if(key==='operatingQualifications'){const app=D.applications.find(a=>a.org===S.org&&a.type==='店铺经营资质变更'&&a.snapshot?.operatingQualifications===next);rows.push(...shopQualificationDiff(prev,next,app));continue;}
-  if(['donationAgreementFile','identityFront','identityBack','licenseFile','shopLogo','categoryProof'].includes(key)){const app=D.applications.find(a=>a.org===S.org&&a.snapshot?.[key]===next);const fileValue=(file,source)=>file?esc(file.name)+' · '+Math.ceil(file.size/1024)+' KB'+(source?' '+btn('查看文件','shop-file',source+':'+key,'link'):''):'—';rows.push(tr([esc(label),fileValue(prev),fileValue(next,app?.id)]));continue;}
+  if(['donationAgreementFile','identityFront','identityBack','licenseFile','shopLogo','categoryProof','foundationCertificate','publicQualificationProof'].includes(key)){const app=D.applications.find(a=>a.org===S.org&&a.snapshot?.[key]===next);const fileValue=(file,source)=>file?esc(file.name)+' · '+Math.ceil(file.size/1024)+' KB'+(source?' '+btn('查看文件','shop-file',source+':'+key,'link'):''):'—';rows.push(tr([esc(label),fileValue(prev),fileValue(next,app?.id)]));continue;}
   if(key==='logo'){const image=v=>v?'<img class="application-change-image" src="'+esc(v)+'" alt="店铺标识">':'—';rows.push(tr([esc(label),image(prev),image(next)]));continue;}
   if(key==='image'){const image=v=>v?.src?'<img class="application-change-image" src="'+esc(v.src)+'" alt="'+esc(v.name||'图片')+'">':'—';rows.push(tr([esc(label),image(prev),image(next)]));continue;}
   if(Array.isArray(next)){
@@ -2245,7 +2438,12 @@ const organizationSectionFields={
  '资质材料':['name','entrantName','entrantIdentity','code','registeredAddress','businessRoles','identityLongTerm','identityValidUntil','licenseLongTerm','licenseValidUntil','identityFront','identityBack','licenseFile','licenseName'],
  '收款资料':['bank','bankAccountName']
 };
-if(!isMerchant)organizationSectionFields['资质材料'].push(...window.FoundationProfile.keys);
+if(!isMerchant){
+ organizationSectionFields['基本资料'].unshift('name');
+ organizationSectionFields['基本资料'].push('foundationFields');
+ organizationSectionFields['资质材料']=organizationSectionFields['资质材料'].filter(key=>key!=='name');
+ organizationSectionFields['资质材料'].push(...window.FoundationProfile.groups.registration,...window.FoundationProfile.groups.evaluation,...window.FoundationProfile.groups.qualification);
+}
 function organizationChanges(application=null){
  const applications=D.applications.filter(a=>a.org===S.org&&a.object===org().id&&['组织资料变更','组织主体资料变更'].includes(a.type)&&a.who===currentAccountName()&&['草稿','已撤回','已驳回'].includes(a.status));
  const drafts=applications.filter(a=>a.status==='草稿'),sources=[...(drafts.length?drafts:[applications[0]].filter(Boolean))];
@@ -2254,6 +2452,10 @@ function organizationChanges(application=null){
  for(const a of sources.slice().reverse()){
   for(const name of a.snapshot.orgSections||[a.snapshot.orgSection||(a.type==='组织主体资料变更'?'资质材料':a.snapshot.bank!=null?'收款资料':'基本资料')])if(organizationSectionFields[name])sections.add(name);
   for(const key of new Set(Object.values(organizationSectionFields).flat()))if(Object.hasOwn(a.snapshot,key))snapshot[key]=a.snapshot[key];
+ }
+ if(!isMerchant&&Object.keys(snapshot).length){
+  sections.clear();
+  for(const [section,keys] of Object.entries(organizationSectionFields))if(keys.some(key=>key!=='bankAccountName'&&Object.hasOwn(snapshot,key)))sections.add(section);
  }
  return {applications:sources,snapshot,sections:[...sections]};
 }
@@ -2266,12 +2468,20 @@ function organizationEditorContext(application=null){
 function organizationChangeIssue(changes){
  const o={...org(),...changes.snapshot};
  if(changes.sections.includes('基本资料')){
+  if(!isMerchant&&!o.name?.trim())return '请填写基本资料中的组织名称。';
+  if(!isMerchant&&JSON.stringify(o.foundationFields||[])!==JSON.stringify(org().foundationFields||[])){const issue=window.FoundationProfile.fieldsError(o);if(issue)return issue;}
   if(!o.contactName?.trim()||!o.address?.trim())return '请补全基本资料中的联系人及办公地址。';
   if(!/^1[0-9]{10}$/.test(o.contact||''))return '请在基本资料填写有效的 11 位联系手机号。';
  }
+ if(!isMerchant){
+  const profile=window.FoundationProfile,previous=profile.normalize(org());
+  for(const [group,keys] of Object.entries(profile.groups))if(keys.some(key=>JSON.stringify(Object.hasOwn(o,key)?o[key]:previous[key])!==JSON.stringify(previous[key]))){
+   const issue=profile[group+'Error'](o);if(issue)return issue;
+  }
+ }
  if(changes.sections.includes('资质材料')){
-  if(!o.name?.trim()||!o.code?.trim())return '请补全资质材料中的组织名称和信用代码。';
-  if(!isMerchant){const issue=window.FoundationProfile.error(o);if(issue)return issue;}
+  if(isMerchant&&!o.name?.trim())return '请补全资质材料中的组织名称和信用代码。';
+  if(!o.code?.trim())return '请填写资质材料中的统一社会信用代码。';
   if(isMerchant){
    if(!o.entrantName?.trim()||!o.entrantIdentity?.trim()||!o.registeredAddress?.trim()||!o.identityLongTerm&&!o.identityValidUntil||!o.licenseLongTerm&&!o.licenseValidUntil)return '请补全资质材料中的入驻人、注册地址及证件有效期。';
    if(!o.businessRoles?.length)return '请在资质材料中至少选择一项业务身份。';
@@ -2283,30 +2493,34 @@ function organizationChangeIssue(changes){
  return '';
 }
 function organizationSubmit(application=null){orgEditor(S.tab,application);}
-function orgEditor(tab=S.tab,application=null){
+function orgEditor(tab=S.tab,application=null,sectionOnly=false){
  const context=organizationEditorContext(application);if(!context)return;
  const effective=JSON.parse(JSON.stringify(context.original)),phone=currentMember().phone,signature=JSON.stringify(context.changes);
  const normalized=o=>({...(!isMerchant?window.FoundationProfile.normalize(o):o),contactName:o.contactName||o.admin||'',mission:o.mission||'',registeredAddress:o.registeredAddress||o.address||'',licenseValidUntil:o.licenseLongTerm?'':o.licenseValidUntil||'2030-12-31',identityValidUntil:o.identityLongTerm?'':o.identityValidUntil||'',identityLongTerm:!!o.identityLongTerm,licenseLongTerm:!!o.licenseLongTerm,businessRoles:merchantBusinessRoles.filter(role=>(o.businessRoles||[]).includes(role))});
- const baseline=normalized(effective),base={...baseline,...context.changes.snapshot},names=['基本资料',...(hasBusinessAccess()||!isMerchant?['资质材料','收款资料']:[])];
+ const baseline=normalized(effective),base={...baseline,...context.changes.snapshot},allNames=['基本资料',...(hasBusinessAccess()||!isMerchant?['资质材料','收款资料']:[])],names=sectionOnly?allNames.filter(name=>name===tab):allNames;
+ if(!names.length)return;
  const group=(name,body)=>'<section class="organization-editor-section" id="org-editor-'+names.indexOf(name)+'" data-editor-section="'+name+'"><h2>'+name+'</h2>'+body+'</section>';
- const basic=field('联系人','contactName',base.contactName)+field('联系手机号','contact',base.contact,'tel')+field('办公地址','address',base.address)+(!isMerchant?field('机构宗旨','mission',base.mission,'textarea',false,true):'');
- const qualification=isMerchant?organizationQualificationFields(base):field('组织名称','name',base.name)+field('统一社会信用代码','code',base.code)+window.FoundationProfile.render(base);
+ const basic=(!isMerchant?field('组织名称','name',base.name):'')+field('联系人','contactName',base.contactName)+field('联系电话','contact',base.contact,'tel')+field('办公地址','address',base.address)+(!isMerchant?field('机构宗旨','mission',base.mission,'textarea',false,true)+window.FoundationProfile.renderFields(base):'');
+ const qualification=isMerchant?organizationQualificationFields(base):field('统一社会信用代码','code',base.code)+window.FoundationProfile.render(base,{includeFields:false});
  const payment='<div class="organization-payment-summary">'+kv([['分账接收方全称',base.name],['微信商户号',paymentAccountText(effective.bank,false)]])+'<p class="tiny muted">接收方全称来源于本页组织名称，须与微信支付开户主体一致。</p></div>'+field('新微信商户号','bank',context.changes.snapshot.bank||'','text',false,true)+'<p class="tiny muted">填写完整的 8～10 位数字；留空保留当前账户。</p>';
  let uploads,foundationProfile;
- form('编辑组织资料','<nav class="organization-editor-nav" aria-label="编辑资料分区">'+names.map((name,i)=>'<button type="button" class="tab" data-editor-target="'+i+'">'+name+'</button>').join('')+'</nav><div class="organization-editor-sections">'+names.map(name=>group(name,name==='基本资料'?basic:name==='资质材料'?qualification:payment)).join('')+'</div>',(data,intent)=>{
+ form(sectionOnly?'编辑'+tab:'编辑组织资料','<nav class="organization-editor-nav" aria-label="编辑资料分区">'+names.map((name,i)=>'<button type="button" class="tab" data-editor-target="'+i+'">'+name+'</button>').join('')+'</nav><div class="organization-editor-sections">'+names.map(name=>group(name,name==='基本资料'?basic:name==='资质材料'?qualification:payment)).join('')+'</div>',(data,intent)=>{
   const contextError=checkContext();if(contextError)return contextError;
   if(uploads?.reading())return '文件读取中，请稍候。';if(uploads?.error())return uploads.error();
   if(foundationProfile?.issue())return foundationProfile.issue();
-  const values={contactName:data.contactName.trim(),contact:data.contact.trim(),address:data.address.trim()};
-  if(!isMerchant)values.mission=data.mission.trim();
+  const values={...context.changes.snapshot};
+  if(names.includes('基本资料')){
+   Object.assign(values,{contactName:data.contactName.trim(),contact:data.contact.trim(),address:data.address.trim()});
+   if(!isMerchant)Object.assign(values,{name:data.name.trim(),mission:data.mission.trim(),foundationFields:window.FoundationProfile.fields.filter((value,i)=>data['foundationField-'+i])});
+  }
   if(names.includes('资质材料')){
-   values.name=data.name.trim();values.code=data.code.trim();
-   if(foundationProfile)Object.assign(values,foundationProfile.snapshot());
+   if(isMerchant)values.name=data.name.trim();values.code=data.code.trim();
+   if(foundationProfile){const profile=foundationProfile.snapshot();for(const key of organizationSectionFields['资质材料'])if(Object.hasOwn(profile,key))values[key]=profile[key];}
    if(isMerchant)Object.assign(values,{entrantName:data.entrantName.trim(),entrantIdentity:data.entrantIdentity.trim(),registeredAddress:data.registeredAddress.trim(),businessRoles:merchantBusinessRoles.filter(role=>data['businessRole-'+role]),identityLongTerm:!!data.identityLongTerm,identityValidUntil:data.identityLongTerm?'':data.identityValidUntil,licenseLongTerm:!!data.licenseLongTerm,licenseValidUntil:data.licenseLongTerm?'':data.licenseValidUntil,...uploads.files});
   }
   if(names.includes('收款资料')&&data.bank.trim())values.bank=data.bank.trim();
   const snapshot={},sections=[];
-  for(const name of names)for(const key of organizationSectionFields[name])if(Object.hasOwn(values,key)&&JSON.stringify(values[key])!==JSON.stringify(baseline[key])){snapshot[key]=values[key];if(!sections.includes(name))sections.push(name);}
+  for(const name of allNames)for(const key of organizationSectionFields[name])if(Object.hasOwn(values,key)&&JSON.stringify(values[key])!==JSON.stringify(baseline[key])){snapshot[key]=values[key];if(!sections.includes(name))sections.push(name);}
   if(snapshot.licenseFile)snapshot.licenseName=snapshot.licenseFile.name;
   if(!sections.length)return '修改内容与生效资料一致，无需提交。';
   if(snapshot.bank||snapshot.name)snapshot.bankAccountName=snapshot.name||effective.name;
@@ -2348,7 +2562,7 @@ function orgEditor(tab=S.tab,application=null){
   context.changes.applications.forEach(replaceSavedApplication);closeOverlay();render();toast(intent==='draft'?'组织资料草稿已保存':'组织资料变更已提交审批');
  }
  function confirm(changes){
-  const sensitive=changes.sections.some(name=>name==='资质材料'||name==='收款资料');let sentAt=0;
+  const sensitive=Object.hasOwn(changes.snapshot,'name')||!isMerchant&&[...window.FoundationProfile.groups.evaluation,...window.FoundationProfile.groups.qualification].some(key=>Object.hasOwn(changes.snapshot,key))||changes.sections.some(name=>name==='资质材料'||name==='收款资料');let sentAt=0;
   const display=(key,v)=>v==null||v===''?'—':key==='bank'?paymentAccountText(v,false):key==='entrantIdentity'?maskSubjectId(v):key==='entrantName'?maskSubjectName(v):v?.name||(Array.isArray(v)?v.join('、'):typeof v==='boolean'?(v?'是':'否'):String(v));
   const rows=Object.entries(changes.snapshot).filter(([key])=>key!=='bankAccountName').map(([key,v])=>tr([esc(applicationFieldNames[key]||key),esc(display(key,baseline[key])),esc(display(key,v))]));
   subdialog('提交组织资料变更','<form id="organization-confirm-form"><p>本次修改：'+esc(changes.sections.join('、'))+'，统一提交审批。</p>'+table(['修改项','修改前','修改后'],rows,false)+(sensitive?'<p>管理员验证手机号：'+esc(String(phone||'未绑定').replace(/^(\d{3})\d{4}(\d{4})$/,'$1****$2'))+'</p><p class="tiny muted">来源：当前组织管理员账号绑定手机号。</p><div class="organization-sms-row">'+field('短信验证码','sms','','text',false)+'<button type="button" class="btn" id="organization-send-code">获取验证码</button></div><p class="tiny muted">原型演示验证码 123456，不发送真实短信。</p>':'')+checkbox('我已阅读并同意适用协议','agreement')+'<div id="organization-confirm-error" class="form-error" role="alert"></div></form>','返回修改');
@@ -2546,6 +2760,9 @@ case 'nav':navigate(id);break;
 case 'contact-system-admin':contactSystemAdmin(id);break;
 case 'copy-admin-issue':{const o=myOrders().find(o=>o.id===id);if(!isMerchant||!o)break;try{await navigator.clipboard.writeText(adminIssueSummary(o));toast('问题信息已复制，请发送给系统管理员');}catch{const pre=$('#secondary .alert-message');if(pre){const range=document.createRange();range.selectNodeContents(pre);const selection=getSelection();selection.removeAllRanges();selection.addRange(range);}toast('请复制已选中的问题信息');}break;}
 case 'analytics-page':if(isMerchant&&window.MerchantAnalytics.pages.includes(id)){S.page='analytics';S.tab=id;Object.assign(analyticsState,{sub:'',productId:'',region:'',metric:'',range:['经营总览','交易数据','商品数据','公益数据'].includes(id)?'实时':'昨日'});closeOverlay();render();window.scrollTo(0,0);}break;
+case 'settlement-group':{if(isMerchant||S.page!=='settlement'||!id.startsWith(S.org+':'))break;if(settlementExpanded.has(id))settlementExpanded.delete(id);else settlementExpanded.add(id);render();[...document.querySelectorAll('[data-action=settlement-group]')].find(button=>button.dataset.id===id)?.focus({preventScroll:true});break;}
+case 'settlement-scope':{if(isMerchant||S.page!=='settlement')break;const [orgId='',productId='']=id.split(':');applySettlementScope(orgId,productId);break;}
+case 'settlement-range':{if(isMerchant||S.page!=='settlement'||!settlementRanges.includes(id))break;const query={...f()},period=settlementPeriod(query);S.filters[filterKey()]={...query,settlementRange:id,from:period.from.slice(0,10),to:period.to.slice(0,10)};render();if(id==='自定义')$('#settlement-date-form [name=from]')?.focus();break;}
 case 'analytics-range':{if(!isMerchant||S.page!=='analytics')break;const detail=id.startsWith('detail:'),regional=id.startsWith('region:'),name=detail||regional?id.slice(7):id;if(!window.MerchantAnalytics.ranges.includes(name))break;const key=regional?'regionRange':detail?'detailRange':'range',from=detail?'detailFrom':'from',to=detail?'detailTo':'to';if(name==='自定义'){const period=window.MerchantAnalytics.range({range:analyticsState[key],from:analyticsState[from],to:analyticsState[to]},'2026-11-02 15:00');analyticsState[from]=period.from;analyticsState[to]=period.to;}analyticsState[key]=name;render();if(name==='自定义')$(detail?(analyticsState.productId?'#analytics-product-date-form [name=from]':'#analytics-detail-date-form [name=from]'):'#analytics-date-form [name=from]')?.focus();break;}
 case 'analytics-metric':{if(!isMerchant||S.page!=='analytics')break;const [page,metric]=id.split('|');if(!window.MerchantAnalytics.pages.includes(page))break;const changed=S.tab!==page;S.tab=page;if(changed){analyticsState.sub='';analyticsState.productId='';analyticsState.region='';analyticsState.range=['经营总览','交易数据','商品数据','公益数据'].includes(page)?'实时':'昨日';}analyticsState.metric=metric;render();if(changed)window.scrollTo(0,0);break;}
 case 'analytics-refresh':if(isMerchant&&S.page==='analytics'){render();toast('数据已刷新');}break;
@@ -2557,17 +2774,18 @@ case 'analytics-control':{if(!isMerchant||S.page!=='analytics')break;const [key,
 case 'analytics-edit-product':if(isMerchant&&S.page==='analytics'&&analyticsProducts().some(p=>p.id===id))productEditor(id);break;
 case 'analytics-goals':{if(!isMerchant||S.page!=='analytics')break;const ctx=merchantAnalyticsContext();form('设置目标成交额',window.MerchantAnalytics.goalTable(ctx),values=>{try{window.MerchantAnalytics.saveGoals(ctx,Object.fromEntries(Object.entries(values).filter(([k])=>/^\d{4}-\d{2}$/.test(k))));}catch(error){return error.message;}closeOverlay();render();toast('经营目标已保存');},'确认设置');$('#overlay .dialog').classList.add('analytics-goals-dialog');$('#overlay .dialog-foot [data-action=close]').setAttribute('aria-label','取消');break;}
 case 'analytics-order':if(isMerchant&&S.page==='analytics'&&myOrders().some(o=>o.id===id))openOrderPage(id,({'售后数据':'售后信息','物流数据':'发货与物流','公益数据':'分账记录'})[S.tab]||'订单信息');break;
-case 'tab':if(S.page==='organization'){scrollOrganizationSection(id);break;}S.tab=id;render();break;
+case 'tab':if(['organization','shop'].includes(S.page)){scrollOrganizationSection(id);break;}S.tab=id;render();break;
 case 'project-tab':S.projectTab=id;S.product='';render();break;
 case 'activity-tab':S.activityTab=id;render();break;
 case 'filter-label':{if(!isMerchant||S.page!=='orders')break;const query={...f()};if(id==='all'){delete query.remarkColor;delete query.remarkPresence;}else{const [key,value]=id.split(':');if(!['remarkColor','remarkPresence'].includes(key))break;query[key]=value;}S.filters[filterKey()]=query;render();break;}
 case 'application-sort':if(S.page==='applications'&&applicationSortKeys.includes(id)){applicationSort.direction=applicationSort.key===id?(applicationSort.direction==='asc'?'desc':'asc'):id==='date'?'desc':'asc';applicationSort.key=id;render();$('#main [data-action=application-sort][data-id='+id+']')?.focus({preventScroll:true});}break;
 case 'apply-filter':$('#filter-form').requestSubmit();break;
-case 'reset-filter':delete S.filters[filterKey()];if(!isMerchant&&['activities','actions'].includes(S.page))S.project='';if(isMerchant&&S.page==='orders')S.quick='全部订单';render();break;
+case 'reset-filter':if(!isMerchant&&S.page==='settlement'){const query=f();S.filters[filterKey()]=Object.fromEntries(['settlementOrg','settlementProduct','settlementRange','from','to'].filter(key=>query[key]!==undefined).map(key=>[key,query[key]]));render();break;}delete S.filters[filterKey()];if(!isMerchant&&['activities','actions'].includes(S.page))S.project='';if(isMerchant&&S.page==='orders')S.quick='全部订单';render();break;
 case 'toggle-query':{const expanded=el.getAttribute('aria-expanded')!=='true';el.setAttribute('aria-expanded',String(expanded));el.textContent=expanded?'收起筛选条件':'展开所有筛选项';$('.merchant-advanced-fields').hidden=!expanded;break;}
 case 'product-options':{const list=$('#order-product-options');if(list?.hidden){openProductOptions();$('#order-product-name')?.focus();}else closeProductOptions();break;}
 case 'filter-product':{const input=$('#order-product-name'),field=$('#filter-form [name=productId]');if(!input||!field)break;input.value=el.dataset.label||'';field.value=id;closeProductOptions();input.focus();break;}
 case 'after-quick':if(isMerchant&&S.page==='orders'&&S.quick==='退款/售后'&&afterQuick.includes(id)){S.filters[filterKey()]={...f(),afterTodo:f().afterTodo===id?'':id};render();}break;
+case 'activity-quick':{if(!['','yes','registration','meeting'].includes(id))break;S.filters[filterKey()]={...f(),issue:id};render();break;}
 case 'quick':{if(!orderQuick.includes(id))break;S.quick=id;const query={...f(),afterStatus:'',issue:'',afterTodo:''};delete query.orderStatus;delete query.afterShipping;delete query.returnWaybill;delete query.afterTimeRange;delete query.afterFrom;delete query.afterTo;if(id==='退款/售后'){delete query.receiverName;delete query.receiverPhone;delete query.shippingWindow;delete query.timeRange;delete query.from;delete query.to;}S.filters[filterKey()]=query;render();break;}
 case 'clear-list':delete S.filters[filterKey()];if(S.page==='orders')S.quick='全部订单';render();break;
 case 'product-status':{if(!isMerchant||S.page!=='products'||!['','在售','已售罄','已下架','待审批','已驳回','草稿'].includes(id))break;const query=$('#filter-form [name=q]')?.value||'';S.filters[filterKey()]={q:query,collaboratorName:$('#filter-form [name=collaboratorName]')?.value||'',productState:id};render();break;}
@@ -2602,7 +2820,10 @@ case 'customer-service-test':customerServiceTest(id);break;
 case 'customer-service-directory':customerServiceDirectory();break;
 case 'shop-donation-edit':shopDonationEditor();break;
 case 'shop-donation-preview':shopDonationPreview();break;
+case 'shop-module-edit':shopModuleEditor(id);break;
 case 'shop-config':shopConfigEditor(id);break;
+
+case 'shop-qualification-submit':shopQualificationSubmit(id);break;
 case 'shop-qualification-add':shopQualificationEditor();break;
 case 'shop-qualification-edit':shopQualificationEditor(id);break;
 case 'shop-qualification-file':shopQualificationFile(id);break;
@@ -2621,7 +2842,9 @@ case 'member-remove':removeMember(id);break;
 case 'member-transfer':transferAdministrator();break;
 case 'shop-edit':shopEditor();break;
 case 'shop-draft':shopEditor(true);break;
-case 'org-edit':orgEditor(S.tab);break;
+case 'org-edit':orgEditor(id||S.tab);break;
+case 'org-section-edit':orgEditor(id,null,true);break;
+case 'org-members-edit':{if(!canManageMembers())break;const section=el.closest('[data-organization-section]');if(!section)break;const editing=section.classList.toggle('organization-members-edit');el.textContent=editing?'完成':'编辑';el.setAttribute('aria-pressed',String(editing));break;}
 case 'org-submit':organizationSubmit();break;
 case 'order':openOrderPage(id);break;
 case 'order-remark':editOrderRemark(id,el);break;
@@ -2651,12 +2874,12 @@ case 'after-accept':{const o=D.orders.find(x=>x.id===id&&allowedOrder(x));if(!is
 case 'after-reject':{if(D.features?.merchantAfterReject!==true){toast('售后不通过暂未开放');break;}const o=D.orders.find(x=>x.id===id&&allowedOrder(x));if(!isMerchant||!o||o.after!=='待处理')break;const afterId=o.afterId;reasonDialog('拒绝售后','填写拒绝原因，处理意见随售后单保存。',reason=>{if(D.features?.merchantAfterReject!==true)return '售后不通过暂未开放';if(!allowedOrder(o)||o.after!=='待处理'||o.afterId!==afterId)return '售后状态已变化，请刷新后处理。';o.after='已拒绝';o.afterCloseReason=reason;o.split='待分账';addAftersaleRecord(o,'审批结果：拒绝售后；'+reason);record(id,'拒绝售后：'+reason,o.project);},'','确认拒绝');break;}
 case 'notify-order':{if(isMerchant)contactSystemAdmin(id);break;}
 case 'expand':S.expanded=S.expanded===id?'':id;render();break;
-case 'order-settlement':{if(isMerchant){openOrder(id,'分账记录');break;}if(isOrderPage){const url=new URL('index.html',location.href);url.search=new URLSearchParams({view:'settlement',order:id,org:S.org,demoAccount:S.demoAccount});location.href=url.href;break;}const o=D.orders.find(x=>x.id===id);if(!o||!allowedOrder(o))break;S.origin={page:S.page,tab:S.tab,project:S.project,projectTab:S.projectTab,product:S.product,activity:S.activity,quick:S.quick,filters:JSON.parse(JSON.stringify(S.filters))};closeOverlay();S.page=isMerchant?'orders':'settlement';S.tab='分账对账';S.project='';S.product='';S.activity='';S.filters[filterKey()]={q:id};render();$('#main').insertAdjacentHTML('afterbegin',btn(icon('arrow')+'返回来源列表','settlement-back','','back'));break;}
+case 'order-settlement':{if(isMerchant){openOrder(id,'分账记录');break;}if(isOrderPage){const url=new URL('index.html',location.href);url.search=new URLSearchParams({view:'settlement',order:id,org:S.org,demoAccount:S.demoAccount});location.href=url.href;break;}const o=D.orders.find(x=>x.id===id);if(!o||!allowedOrder(o))break;S.origin={page:S.page,tab:S.tab,project:S.project,projectTab:S.projectTab,product:S.product,activity:S.activity,quick:S.quick,filters:JSON.parse(JSON.stringify(S.filters))};closeOverlay();S.page=isMerchant?'orders':'settlement';S.tab='分账对账';S.project='';S.product='';S.activity='';S.filters[filterKey()]=isMerchant?{q:id}:settlementOrderFilter(id);render();$('#main').insertAdjacentHTML('afterbegin',btn(icon('arrow')+'返回来源列表','settlement-back','','back'));break;}
 case 'settlement-back':{if(S.origin){const origin=S.origin;Object.assign(S,origin);S.origin=null;render();}break;}
 case 'application':applicationDialog(id);break;
 case 'application-object':{const application=D.applications.find(x=>x.object===id&&x.org===S.org);if(application)applicationDialog(application.id);break;}
 case 'withdraw':{const a=D.applications.find(x=>x.id===id&&x.org===S.org);if(a?.status!=='待审批')break;a.approvalStages=a.approvalStages||a.stage.split(' → ');a.submittedAt=a.submittedAt||a.date;a.withdrawnAt=R.stamp(Date.now());a.date=a.withdrawnAt;a.status='草稿';a.stage='未提交';if(product(a.object))product(a.object).review='草稿';record(a.title,'撤回申请 v'+a.version);closeOverlay();render();toast('已撤回并恢复草稿，可继续修改');break;}
-case 'resubmit':{const a=D.applications.find(x=>x.id===id&&x.org===S.org);if(!a||!['草稿','已撤回','已驳回'].includes(a.status)||a.who!==currentAccountName())break;closeOverlay();if(product(a.object)&&/商品上架|商品下架/.test(a.type)){const p=product(a.object);reasonDialog(a.type,'审批通过后变更商品上架状态。',reason=>submitApplication(a.type,p,{reason,status:a.snapshot.status}),merchantProductSummary(p),'提交申请');}else if(product(a.object)&&a.type==='商品价格变更')priceEditor(a.object);else if(product(a.object))productEditor(a.object);else if(project(a.object))projectEditor(a.object);else if(activity(a.object)){S.project=activity(a.object).project;activityEditor(a.object);}else if(a.snapshot?.orgSections&&a.type==='组织资料变更'){navigate('organization');orgEditor(a.snapshot.orgSections[0],a);}else if(a.type==='组织主体资料变更'){navigate('organization');orgEditor('资质材料',a);}else if(a.type.includes('组织'))orgEditor(a.snapshot?.orgSection||(a.snapshot?.bank!=null?'收款资料':'基本资料'),a);else if(a.type==='店铺经营资质变更')shopQualificationEditor('',a);else if(a.type==='店铺捐赠协议变更')shopDonationUpload(a);else if(a.type==='店铺每单捐协议变更')shopDonationEditor(a);else if(a.type==='店铺资料变更'&&a.snapshot?.configSection)shopConfigEditor(a.snapshot.configSection,a);else if(a.type.includes('店铺'))shopEditor(a.type==='店铺开通',a);break;}
+case 'resubmit':{const a=D.applications.find(x=>x.id===id&&x.org===S.org);if(!a||!['草稿','已撤回','已驳回'].includes(a.status)||a.who!==currentAccountName())break;closeOverlay();if(product(a.object)&&/商品上架|商品下架/.test(a.type)){const p=product(a.object);reasonDialog(a.type,'审批通过后变更商品上架状态。',reason=>submitApplication(a.type,p,{reason,status:a.snapshot.status}),merchantProductSummary(p),'提交申请');}else if(product(a.object)&&a.type==='商品价格变更')priceEditor(a.object);else if(product(a.object))productEditor(a.object);else if(project(a.object))projectEditor(a.object);else if(activity(a.object)){S.project=activity(a.object).project;activityEditor(a.object);}else if(a.snapshot?.orgSections&&a.type==='组织资料变更'){navigate('organization');orgEditor(a.snapshot.orgSections[0],a);}else if(a.type==='组织主体资料变更'){navigate('organization');orgEditor('资质材料',a);}else if(a.type.includes('组织'))orgEditor(a.snapshot?.orgSection||(a.snapshot?.bank!=null?'收款资料':'基本资料'),a);else if(a.type==='店铺经营资质变更'){if(Object.hasOwn(a.snapshot,'inheritOrganizationLicense')&&!a.qualificationId)shopQualificationSubmit(a.id);else shopQualificationEditor('',a);}else if(a.type==='店铺捐赠协议变更')shopDonationUpload(a);else if(a.type==='店铺每单捐协议变更')shopDonationEditor(a);else if(a.type==='店铺资料变更'&&a.snapshot?.configSection)shopConfigEditor(a.snapshot.configSection,a);else if(a.type.includes('店铺'))shopEditor(a.type==='店铺开通',a);break;}
 case 'join':joinDialog(id);break;
 case 'join-approve':{const j=D.joins.find(x=>x.id===id&&x.org===S.org);if(S.member||j?.status!=='待审批')break;j.status='已通过';D.members.push({id:'U'+Date.now(),org:S.org,name:j.name,phone:j.phone,role:'组织成员',accountKey:'joined-'+j.id,shopIds:[],permissions:[],remark:j.remark||''});record(j.name,'成员加入审批通过');C.persist();closeOverlay();render();toast('已通过，成员可使用本组织授权功能');break;}
 case 'join-reject':{const j=D.joins.find(x=>x.id===id&&x.org===S.org);if(S.member||j?.status!=='待审批')break;reasonDialog('驳回成员申请','请填写驳回原因。',reason=>{j.status='已驳回';j.reason=reason;C.persist();record(j.name,'成员加入审批驳回：'+reason);});break;}
@@ -2731,10 +2954,22 @@ document.addEventListener('pointerdown',e=>{if(e.target.closest('.pe-recipient-c
  },true);
  window.addEventListener('resize',closeRecipientOptions);
  document.addEventListener('scroll',e=>{if(e.target.closest?.('.pe-recipient-options'))return;document.querySelectorAll('.pe-recipient-options:popover-open').forEach(list=>{const input=document.querySelector('[aria-controls="'+list.id+'"]'),rect=input.getBoundingClientRect();if(rect.bottom<0||rect.top>innerHeight)closeRecipientOptions();else positionRecipientOptions(input,list);});},true);
-document.addEventListener('click',e=>{if(!e.target.closest('.product-name-filter'))closeProductOptions();for(const menu of document.querySelectorAll('.order-label-menu[open]'))if(!menu.contains(e.target))menu.open=false;const el=e.target.closest('[data-action]');if(el)handle(el.dataset.action,el.dataset.id,el).then(publishOrderChange).catch(err=>{console.error(err);toast('操作未完成，请检查当前输入');});});
+document.addEventListener('click',e=>{if(!e.target.closest('.product-name-filter'))closeProductOptions();for(const menu of document.querySelectorAll('.order-label-menu[open]'))if(!menu.contains(e.target))menu.open=false;const el=e.target.closest('[data-action]'); if(el)handle(el.dataset.action,el.dataset.id,el).then(publishOrderChange).catch(err=>{console.error(err);toast('操作未完成，请检查当前输入');});});
 document.addEventListener('input',e=>{if(e.target.matches('[name=remarkText]')&&$('#remark-count'))updateRemarkEditor();if(e.target.matches('[data-remark-label]'))e.target.parentElement.querySelector('.remark-name-count').textContent=e.target.value.length+'/3';});
 document.addEventListener('change',e=>{if(e.target.matches('[name=remarkColor]'))updateRemarkEditor();});
 document.addEventListener('blur',e=>{if(e.target.matches('[data-remark-label]'))finishRemarkName(e.target);},true);
+document.addEventListener('change',e=>{
+ if(isMerchant||S.page!=='settlement'||!e.target.closest('#settlement-scope-form'))return;
+ const form=e.target.closest('form');applySettlementScope(form.elements.settlementOrg.value,e.target.name==='settlementOrg'?'':form.elements.settlementProduct.value);
+});
+document.addEventListener('submit',e=>{if(e.target.id!=='settlement-scope-form')return;e.preventDefault();if(!isMerchant&&S.page==='settlement')applySettlementScope(e.target.elements.settlementOrg.value,e.target.elements.settlementProduct.value);});
+document.addEventListener('submit',e=>{
+ if(e.target.id!=='settlement-date-form'||isMerchant||S.page!=='settlement')return;
+ e.preventDefault();const values=Object.fromEntries(new FormData(e.target)),valid=value=>/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value+'T00:00:00'))&&dateValue(new Date(value+'T00:00:00')).slice(0,10)===value;
+ let error='';if(!valid(values.from)||!valid(values.to))error='请选择完整、有效的开始和结束日期';else if(values.from>values.to)error='开始日期不能晚于结束日期';else if(values.to>dateValue(demoNow).slice(0,10))error='结束日期不能晚于统计日期';
+ if(error){e.target.querySelector('.settlement-date-error').textContent=error;return;}
+ S.filters[filterKey()]={...f(),settlementRange:'自定义',from:values.from,to:values.to};render();
+});
 document.addEventListener('submit',e=>{if(e.target.id==='filter-form'){e.preventDefault();const query=Object.fromEntries(new FormData(e.target));if(query.from&&query.to&&query.from>query.to){toast('开始时间不能晚于结束时间');return;}if(query.afterFrom&&query.afterTo&&query.afterFrom>query.afterTo){toast('申请开始时间不能晚于结束时间');return;}if(!isMerchant&&['activities','actions'].includes(S.page)){S.project=scopedProject(query.activityProject)?.id||'';delete query.activityProject;}S.filters[filterKey()]=query;render();return;}if(e.target.id!=='edit-form')return;e.preventDefault();const handler=formHandler;if(!handler)return;const data=Object.fromEntries(new FormData(e.target)),intent=e.submitter?.value||'submit';const error=handler(data,intent);if(error&&$('#form-error')){$('#form-error').textContent=error;$('#form-error').scrollIntoView({block:'nearest'});}});
 document.addEventListener('submit',e=>{
  if(!isMerchant||S.page!=='analytics'||!['analytics-date-form','analytics-detail-date-form','analytics-product-date-form','analytics-goods-form','analytics-pilot-form'].includes(e.target.id))return;

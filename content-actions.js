@@ -36,7 +36,7 @@
   const source=document.getElementById(conference?'conference-signup':enterprise?'enterprise-signup':'volunteer-signup');if(!source)return;
   const page=document.createElement('section');page.dataset.previewRegistration='';page.className='preview-registration';page.setAttribute('role','dialog');page.setAttribute('aria-modal','true');page.setAttribute('aria-label',preview?'报名预览':'报名信息');
   page.innerHTML='<header><button type="button" class="sheet-close" aria-label="返回详情">‹</button><b>报名信息</b></header><div class="preview-registration-content"><section class="signup-summary"><h2></h2><p></p></section></div>';
-  page.querySelector('h2').textContent=p.name||'待填写标题';page.querySelector('.signup-summary p').textContent=(p.start||'待填写时间').replace('T',' ')+' · '+(p.template==='捐赠参会类'&&p.format==='线上'?'线上参会':p.location||'待填写地点');
+  page.querySelector('h2').textContent=p.name||'待填写标题';page.querySelector('h2').title=p.name||'待填写标题';page.querySelector('.signup-summary p').textContent=(p.start||'待填写时间').replace('T',' ')+' · '+(p.template==='捐赠参会类'&&p.format==='线上'?'线上参会':p.location||'待填写地点');
   const form=source.cloneNode(true);form.removeAttribute('id');form.replaceChildren(source.querySelector('.signup-form-heading').cloneNode(true));
   const fields=enterprise?[['company','企业名称'],['name','本人姓名'],['phone','手机号'],['position','职务']]:[['name','姓名'],['phone','手机号']];
   for(const name of ['experience','skills'])if(p[name]===true||p[name]==='on')fields.push([name,name==='experience'?'公益经历':'专项技能']);
@@ -69,8 +69,8 @@
   page.querySelector('header button').addEventListener('click',()=>closeRegistration());actions.firstElementChild.addEventListener('click',()=>closeRegistration());
   form.addEventListener('submit',event=>{
    event.preventDefault();event.stopImmediatePropagation();if(!form.reportValidity())return;
-   const complete=amount=>{
-    if(conference&&Number.isFinite(amount))form.conferenceAmountPicker.setAmount(amount);
+   const complete=(amount,hasDrawn)=>{
+    if(conference&&Number.isFinite(amount))form.conferenceAmountPicker.setAmount(amount,{hasDrawn});
     if(preview){renderGroup(page,p,conference?'资格有效':'待审核');result.textContent=conference?'预览完成：捐赠成功后获得本人报名资格，未发起实际支付或报名。':'预览完成：报名资料已填写完整，未提交实际报名。';return;}
     const values=Object.fromEntries(new FormData(form));closeRegistration();
     const native=document.getElementById(conference?'conference-signup':enterprise?'enterprise-signup':'volunteer-signup');
@@ -81,7 +81,7 @@
     renderGroup(document.getElementById('enrollment-success'),p,conference?'资格有效':'待审核');
     if(conference)document.querySelectorAll('#attendance .phone').forEach(root=>renderGroup(root,p,'资格有效'));
    };
-   if(conference){const picker=form.conferenceAmountPicker;if(!picker.valid()){picker.update();form.querySelector('.donation-error').scrollIntoView({block:'nearest'});return;}openDonation(actions.lastElementChild,complete,{initialAmount:picker.amount});}else complete();
+   if(conference){const picker=form.conferenceAmountPicker;if(!picker.valid()){picker.update();form.querySelector('.donation-error').scrollIntoView({block:'nearest'});return;}openDonation(actions.lastElementChild,complete,{initialAmount:picker.amount,initialHasDrawn:picker.hasDrawn});}else complete();
   });
   background.forEach(node=>node.inert=true);phone.append(page);document.addEventListener('keydown',onKey,true);page.querySelector('input')?.focus();
  }
@@ -90,13 +90,16 @@
   const presets=modes.includes('preset')?String(p.amountMode==='fixed'?p.amount:p.donationOptions||p.options||'').split(/[,，]/).map(Number).filter(n=>Number.isFinite(n)&&n>0&&Math.abs(n*100-Math.round(n*100))<1e-8):[];
   const low=Math.ceil(Number(p.drawMin)*100),high=Math.floor(Number(p.drawMax)*100),randomValid=Number.isSafeInteger(low)&&low>0&&Number.isSafeInteger(high)&&high>=low;
   const custom=sheet.querySelector('.donation-custom input'),random=sheet.querySelector('.donation-random'),presetList=sheet.querySelector('.donation-presets'),error=sheet.querySelector('.donation-error');
-  const note=sheet.querySelector('.donation-random-hint');
+  const note=sheet.querySelector('.donation-random-hint'),hasAmountField=modes.some(mode=>['random','custom'].includes(mode));
   let amount=Number(options.initialAmount)||presets[0]||0,fortune=null,drawSequence=0;
-  let surface=sheet,previousInert=false;
-  custom.value=modes.includes('custom')&&amount&&!presets.includes(amount)?String(amount):'';custom.min='0.01';custom.step='0.01';custom.removeAttribute('max');
-  custom.closest('label').hidden=!modes.includes('custom');custom.disabled=!modes.includes('custom');
+  let surface=sheet,previousInert=false,hasDrawn=!!options.initialHasDrawn&&modes.includes('random');
+  const renderFortune=()=>{const image=random.querySelector('img');image.src=hasDrawn?'assets/fortune-double-thumbs-transparent.webp':'assets/fortune-tap-transparent.webp';image.alt=hasDrawn?'双拇指点赞，感谢一起同行':'';random.setAttribute('aria-label',hasDrawn?'已抽取心意，再次点击重新抽取':'心意签，点击抽取捐赠金额');};
+  renderFortune();
+  custom.value=hasAmountField&&amount&&(Number(options.initialAmount)>0||!presets.includes(amount))?String(amount):'';custom.min='0.01';custom.step='0.01';custom.removeAttribute('max');
+  custom.closest('label').hidden=!hasAmountField;custom.disabled=!hasAmountField;custom.readOnly=!modes.includes('custom');
+  custom.placeholder=modes.includes('custom')?'自定义金额':'抽签后显示金额';custom.setAttribute('aria-label',modes.includes('custom')?'捐赠金额，可自定义':'捐赠金额，抽签后填入');
   random.hidden=!modes.includes('random');random.disabled=!randomValid;
-  sheet.querySelector('.donation-custom').hidden=!modes.some(mode=>['random','custom'].includes(mode));
+  sheet.querySelector('.donation-custom').hidden=!hasAmountField;
   note.hidden=true;
   const valid=()=>Number.isFinite(amount)&&amount>0&&Math.abs(amount*100-Math.round(amount*100))<1e-8;
   const update=()=>{
@@ -105,7 +108,7 @@
    presetList.querySelectorAll('button').forEach(button=>{const selected=Number(button.dataset.donationPreset)===amount&&!custom.value;button.classList.toggle('selected',selected);button.setAttribute('aria-pressed',String(selected));});
   };
   presetList.replaceChildren(...presets.map(value=>{const button=document.createElement('button');button.type='button';button.dataset.donationPreset=value;button.textContent=value+'元';button.addEventListener('click',()=>{amount=value;custom.value='';note.hidden=true;update();});return button;}));presetList.hidden=!presets.length;
-  custom.addEventListener('input',()=>{amount=Number(custom.value);note.hidden=true;update();});
+  custom.addEventListener('input',()=>{if(custom.readOnly){custom.value=amount>0?String(amount):'';return;}amount=Number(custom.value);note.hidden=true;update();});
   const closeFortune=()=>{drawSequence++;if(!fortune)return;window.stopFortuneLayers?.(fortune.querySelector('.fortune-animation'));fortune.remove();fortune=null;surface.inert=previousInert;random.focus();};
   const draw=()=>{
    const sequence=++drawSequence,overlay=fortune,animation=overlay.querySelector('.fortune-animation'),result=overlay.querySelector('.heart-fortune'),drawButton=overlay.querySelector('.fortune-draw');
@@ -123,7 +126,7 @@
    fortune.querySelectorAll('[data-close-fortune]').forEach(button=>button.addEventListener('click',closeFortune));
    const manual=fortune.querySelector('.fortune-manual');manual.hidden=!modes.includes('custom');manual.addEventListener('click',()=>{closeFortune();custom.focus();});
    fortune.querySelector('.fortune-draw').addEventListener('click',draw);
-   fortune.querySelector('.fortune-use').addEventListener('click',()=>{amount=Number(fortune.dataset.amount);custom.value=modes.includes('custom')?amount.toFixed(2):'';update();note.textContent='这次的心意是 ¥'+amount.toFixed(2);note.hidden=false;closeFortune();});
+   fortune.querySelector('.fortune-use').addEventListener('click',()=>{amount=Number(fortune.dataset.amount);custom.value=amount.toFixed(2);hasDrawn=true;renderFortune();update();note.textContent='这次的心意是 ¥'+amount.toFixed(2);note.hidden=false;closeFortune();});
    fortune.addEventListener('keydown',event=>{
     if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();closeFortune();}
     if(event.key==='Tab'){const items=[...fortune.querySelectorAll('button:not(:disabled)')].filter(node=>!node.closest('[hidden]'));if(event.shiftKey&&document.activeElement===items[0]){event.preventDefault();items.at(-1)?.focus();}else if(!event.shiftKey&&document.activeElement===items.at(-1)){event.preventDefault();items[0]?.focus();}}
@@ -131,7 +134,7 @@
    phone.append(fortune);draw();
   });
   update();
-  return {get amount(){return amount;},setAmount(value){amount=Number(value);custom.value=modes.includes('custom')&&!presets.includes(amount)?String(amount):'';update();},valid,update,closeFortune,get fortune(){return fortune;}};
+  return {get amount(){return amount;},get hasDrawn(){return hasDrawn;},setAmount(value,state={}){amount=Number(value);if(typeof state.hasDrawn==='boolean')hasDrawn=state.hasDrawn;renderFortune();custom.value=hasAmountField&&amount>0?amount.toFixed(2):'';update();},valid,update,closeFortune,get fortune(){return fortune;}};
  }
  function openDonation(trigger,onSuccess,options={}){
   if(!current)return;
@@ -163,9 +166,9 @@
   submit.addEventListener('click',()=>{
    if(!valid())return;const amount=picker.amount;error.hidden=false;
    if(!agreement.checked){error.textContent='请阅读并同意捐赠须知及适用协议';return;}
-   if(preview){error.textContent='预览完成：捐赠金额 ¥'+amount.toFixed(2)+'，未发起实际支付。';if(onSuccess){closeDonation();onSuccess(amount);}return;}
+   if(preview){error.textContent='预览完成：捐赠金额 ¥'+amount.toFixed(2)+'，未发起实际支付。';if(onSuccess){closeDonation();onSuccess(amount,picker.hasDrawn);}return;}
    document.dispatchEvent(new CustomEvent('content:donated',{detail:{amount,project:p.parentProject?.name||p.name,activity:p.previewKind==='project'?'':p.name,conference:!!onSuccess}}));
-   closeDonation();if(onSuccess)onSuccess(amount);else location.hash='personal-donation';
+   closeDonation();if(onSuccess)onSuccess(amount,picker.hasDrawn);else location.hash='personal-donation';
   });
   background.forEach(node=>node.inert=true);phone.append(shade,sheet);document.addEventListener('keydown',onKey,true);picker.update();sheet.querySelector('.donation-close').focus();
  }
@@ -182,7 +185,7 @@
   const p=document.getElementById('screen-conference-0')?.contentExample;if(!p)return;
   current={phone:form.closest('.phone'),p,preview:false};
   const picker=form.conferenceAmountPicker;if(picker&&!picker.valid()){picker.update();return;}
-  openDonation(document.querySelector('button[type=submit][form=conference-signup]')||form,()=>{prepareRegistration(form,p);form.contentDonationConfirmed=true;try{form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));}finally{form.contentDonationConfirmed=false;}},{initialAmount:picker?.amount});
+  openDonation(document.querySelector('button[type=submit][form=conference-signup]')||form,()=>{prepareRegistration(form,p);form.contentDonationConfirmed=true;try{form.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));}finally{form.contentDonationConfirmed=false;}},{initialAmount:picker?.amount,initialHasDrawn:picker?.hasDrawn});
  },true);
  document.addEventListener('click',event=>{
   if(event.target.closest('[data-preview-donation],[data-preview-registration]'))return;

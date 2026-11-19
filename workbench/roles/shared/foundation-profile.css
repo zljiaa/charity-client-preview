@@ -1,0 +1,52 @@
+.foundation-profile{grid-column:1/-1;min-width:0;width:100%}
+.foundation-classification{min-width:0;margin:0 0 20px;padding:16px;border:1px solid var(--line,#e1e6e3);border-radius:8px}
+.foundation-classification legend{padding:0 8px;font-size:15px;font-weight:600}
+.foundation-profile-grid,.foundation-conditional{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 20px}
+.foundation-profile-grid label{display:flex;flex-direction:column;gap:7px;min-width:0;font-size:14px}
+.foundation-profile-grid input:not([type=checkbox]),.foundation-profile-grid select{box-sizing:border-box;width:100%;min-width:0;padding:10px;border:1px solid var(--line,#dce2df);border-radius:6px;background:#fff;color:inherit;font:inherit}
+.foundation-conditional,.foundation-hint,.foundation-field-options{grid-column:1/-1}
+.foundation-conditional[hidden]{display:none}
+.foundation-hint{margin:0;color:var(--muted,#66756d);font-size:12px;line-height:1.6}
+.foundation-field-options{display:flex;flex-wrap:wrap;gap:8px}
+.foundation-profile-grid .foundation-field-option{display:flex;flex-direction:row;align-items:center;gap:7px;padding:8px 12px;border:1px solid var(--line,#dce2df);border-radius:6px;cursor:pointer}
+.foundation-field-option:has(input:checked){border-color:var(--green,#236746);background:#eff7f1}
+.foundation-field-option input{width:15px;height:15px;margin:0;accent-color:var(--green,#236746)}
+.foundation-file-status{font-size:12px;color:var(--muted,#66756d);overflow-wrap:anywhere}
+@media(max-width:640px){.foundation-profile-grid,.foundation-conditional{grid-template-columns:1fr}.foundation-classification{padding:12px}.foundation-profile-grid .foundation-field-option{padding:7px 9px}}
+
+/* Compact foundation organization editing, with matching basic/qualification sections. */
+body[data-role="foundation"] .organization-editor-sections{padding:12px 20px}
+body[data-role="foundation"] .organization-editor-section{padding:16px;margin-bottom:12px}
+body[data-role="foundation"] .organization-editor-section:last-child{min-height:0;margin-bottom:0}
+body[data-role="foundation"] .organization-editor-section>h2{margin:0 0 12px;padding-bottom:10px}
+body[data-role="foundation"] .organization-editor-section>label{grid-template-columns:132px minmax(0,640px);gap:10px;margin-bottom:10px}
+body[data-role="foundation"] .organization-editor-section[data-editor-section="基本资料"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 24px}
+body[data-role="foundation"] .organization-editor-section[data-editor-section="基本资料"]>h2,
+body[data-role="foundation"] .organization-editor-section .foundation-fields-editor{grid-column:1/-1}
+body[data-role="foundation"] .organization-editor-section[data-editor-section="基本资料"]>h2{margin-bottom:2px}
+body[data-role="foundation"] .organization-editor-section[data-editor-section="基本资料"]>label{grid-template-columns:92px minmax(0,1fr);margin:0}
+body[data-role="foundation"] .organization-editor-page .form-grid input:not([type=checkbox]),
+body[data-role="foundation"] .organization-editor-page .form-grid select,
+body[data-role="foundation"] .organization-editor-page .form-grid textarea{padding:7px 9px;font-size:13px;line-height:20px}
+body[data-role="foundation"] .organization-editor-page .form-grid textarea{min-height:64px}
+body[data-role="foundation"] .organization-editor-page .foundation-classification{padding:10px 12px;margin:0 0 10px}
+body[data-role="foundation"] .organization-editor-page .foundation-classification:last-child{margin-bottom:0}
+body[data-role="foundation"] .organization-editor-page .foundation-classification legend{font-size:13px;padding:0 6px}
+body[data-role="foundation"] .organization-editor-page .foundation-profile-grid,
+body[data-role="foundation"] .organization-editor-page .foundation-conditional{gap:8px 20px}
+body[data-role="foundation"] .organization-editor-page .foundation-profile-grid label{gap:4px;font-size:13px}
+body[data-role="foundation"] .organization-editor-page .foundation-field-options{gap:6px}
+body[data-role="foundation"] .organization-editor-page .foundation-profile-grid .foundation-field-option{padding:5px 9px;gap:6px}
+body[data-role="foundation"] .organization-editor-page .foundation-hint{line-height:1.5}
+body[data-role="foundation"] .organization-editor-page .organization-payment-summary{margin-bottom:12px}
+body[data-role="foundation"] .organization-editor-page #edit-form>.dialog-foot{padding:10px 20px}
+@media(max-width:1000px){
+ body[data-role="foundation"] .organization-editor-section[data-editor-section="基本资料"]{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+ body[data-role="foundation"] .organization-editor-sections{padding:10px}
+ body[data-role="foundation"] .organization-editor-section{padding:12px}
+ body[data-role="foundation"] .organization-editor-section>label,
+ body[data-role="foundation"] .organization-editor-section[data-editor-section="基本资料"]>label{grid-template-columns:1fr;gap:4px}
+}
+
