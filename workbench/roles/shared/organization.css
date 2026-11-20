@@ -699,3 +699,29 @@ body[data-role] .organization-page .shop-qualification-heading h2{margin:0}
 .shop-donation-inline .phone-body{padding:16px}
 body[data-role] .organization-page .shop-donation-inline .phone-body h2{margin-bottom:12px;font-size:15px}
 .shop-donation-inline .shop-donation-text{font-size:13px;line-height:1.9}
+
+/* Show the complete customer service directory without horizontal scrolling. */
+#secondary .customer-directory-dialog{width:min(1200px,calc(100vw - 48px));max-width:1200px}
+.customer-directory-dialog table{width:100%;min-width:0;table-layout:fixed}
+.customer-directory-dialog th,.customer-directory-dialog td{white-space:normal;overflow-wrap:anywhere}
+.customer-directory-dialog th:nth-child(1){width:14%}
+.customer-directory-dialog th:nth-child(2){width:24%}
+.customer-directory-dialog th:nth-child(3){width:30%}
+.customer-directory-dialog th:nth-child(4){width:32%}
+@media(max-width:800px){#secondary .customer-directory-dialog{width:calc(100vw - 24px);margin:12px}.customer-directory-dialog th,.customer-directory-dialog td{padding:10px 6px}}
+.customer-directory-dialog .table-wrap{border-bottom:1px solid var(--line)}
+/* Keep customer configuration compact, with each label beside its field. */
+.shop-customer-input>[hidden]{display:none!important}
+#overlay .shop-customer-editor{width:min(720px,calc(100vw - 32px));max-width:720px}
+.shop-customer-editor .dialog-head{padding:12px 18px}
+.shop-customer-editor .dialog-body{padding:16px 18px}
+.shop-customer-editor .dialog-foot{padding:12px 18px;gap:8px}
+.shop-module-editor [data-shop-edit-section=customer] .shop-module-customer-account,.shop-module-editor [data-shop-edit-section=customer]>.form-grid>.form-field{display:grid;grid-template-columns:190px minmax(0,1fr);align-items:start;gap:10px}
+.shop-module-editor .shop-module-customer-account>label{display:flex;flex-direction:row;align-items:center;gap:4px;white-space:nowrap;padding-top:9px}
+.shop-module-editor .required-tip{display:inline!important}
+.shop-customer-input{margin-top:0;gap:8px}
+.shop-customer-input>.btn{padding:7px 10px;font-size:12px}
+.shop-module-editor [data-shop-edit-section=customer]>.form-grid>.form-field>span{padding-top:9px}
+.shop-module-editor [data-shop-edit-section=customer] textarea{min-height:64px;height:64px}
+@media(max-width:600px){.shop-module-editor [data-shop-edit-section=customer] .shop-module-customer-account,.shop-module-editor [data-shop-edit-section=customer]>.form-grid>.form-field{grid-template-columns:minmax(0,1fr);gap:6px}.shop-module-editor .shop-module-customer-account>label,.shop-module-editor [data-shop-edit-section=customer]>.form-grid>.form-field>span{padding-top:0}}
+.shop-donation-inline>p.tiny{margin:0 0 12px}
