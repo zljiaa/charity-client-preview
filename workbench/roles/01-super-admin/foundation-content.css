@@ -1,0 +1,8 @@
+/* The content, editor and preview retain the foundation workbench styles. */
+body .sidebar,body .topbar,body .footer-note,body .workspace-context,body .mobile-cover{display:none!important}
+body .workspace{margin-left:0!important;min-height:0}
+body .main{padding:18px 0!important;max-width:none;width:100%}
+body .eyebrow{display:none}
+body .page-head{margin-top:0}
+body .dialog{max-height:calc(100vh - 24px)}
+@media(max-width:760px){body .main{padding:12px 0!important}}

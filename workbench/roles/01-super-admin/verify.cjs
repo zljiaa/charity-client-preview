@@ -1,0 +1,90 @@
+const {chromium}=require(process.env.PLAYWRIGHT_MODULE||process.argv[2]||'playwright');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const {pathToFileURL}=require('node:url');
+(async()=>{
+ const browser=await chromium.launch({channel:'chrome',headless:true});
+ const page=await browser.newPage({viewport:{width:1512,height:982},deviceScaleFactor:1});
+ const errors=[],checks=[];page.setDefaultTimeout(7000);
+ page.on('pageerror',e=>errors.push(e.message));
+ const click=async(a,id)=>{const root=await page.locator('#overlay [role=dialog]').count()?page.locator('#overlay'):page;let l=root.locator('[data-action="'+a+'"]'+(id!==undefined?'[data-id="'+id+'"]':''));await l.filter({visible:true}).first().click();};
+ const nav=id=>click('nav',id);
+ const check=(v,s)=>{assert.ok(v,s);checks.push(s)};
+ const submit=()=>page.locator('#edit-form button[type=submit]').click();
+ const previews=path.join(__dirname,'previews');fs.mkdirSync(previews,{recursive:true});
+ const shot=async name=>{await page.locator('#toast').evaluate(el=>el.classList.remove('visible'));return page.screenshot({path:path.join(previews,name+'.png'),fullPage:!(await page.locator('[role=dialog]').count()),animations:'disabled'});};
+ try{
+  await page.goto(pathToFileURL(path.join(__dirname,'index.html')).href);
+  check(await page.locator('nav .nav-item').count()===12,'超级管理员展示 12 个授权导航');
+  check(await page.locator('nav').getByText('项目管理',{exact:true}).count()===0,'项目编辑集中在项目与活动入口');
+  await shot('01-merchant-list');
+  const routes=await page.locator('nav [data-id]').evaluateAll(ls=>ls.map(x=>x.dataset.id));
+  for(const r of routes){await nav(r);if(r==='content')await page.frameLocator('#platform-foundation-frame').locator('h1').waitFor();check(await (r==='content'?page.frameLocator('#platform-foundation-frame').locator('h1'):page.locator('h1')).count()===1,'导航可访问 '+r);check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'桌面页面无整体横向溢出 '+r);}
+  await nav('merchants');await page.locator('input[name=q]').fill('青禾');await page.locator('form[data-filter] button[type=submit]').click();
+  check(await page.locator('tbody tr').count()===1,'商家名称筛选生效');
+  check((await page.locator('.stats').innerText()).includes('¥100.00'),'商家汇总随筛选更新');
+  await click('reset-filter','list');await click('entity','M001');
+  for(const t of ['基本资料','店铺','商品与订单','分账','公益贡献','操作记录']){await click('tab',t);check((await page.locator('h1').innerText()).includes('善行公益自营商家'),'商家选项卡保留当前对象 '+t);}
+  await click('tab','店铺');
+  for(const t of ['店铺资料','资质信息','客服配置','商品管理','订单管理']){await click('shop-tab',t);check(await page.locator('.shop-title').count()===1,'店铺选项卡可访问 '+t);}
+  check(await page.locator('[data-action=shop-tab][data-id="分账对账"]').count()===0,'分账对账纳入订单管理');
+  check(await page.locator('[data-action=order-list-tab]').count()===2,'订单管理保留两个选项卡');
+  await page.locator('form[data-filter=orders] input[name=q]').fill('SO20261028003');await page.locator('form[data-filter=orders] select[name=orderStatus]').selectOption('售后中');await page.locator('form[data-filter=orders] button[type=submit]').click();
+  await click('order-list-tab','分账对账');await page.locator('form[data-filter=settlement] select[name=status]').selectOption('部分分账');await page.locator('form[data-filter=settlement] input[name=start]').fill('2026-10-28');await page.locator('form[data-filter=settlement] button[type=submit]').click();
+  check(await page.locator('form[data-filter=settlement] input[name=q]').inputValue()==='','两个选项卡分别保存筛选条件');
+  await click('order-list-tab','订单清单');check(await page.locator('form[data-filter=orders] input[name=q]').inputValue()==='SO20261028003','返回订单清单保留订单号筛选');check(await page.locator('form[data-filter=orders] select[name=orderStatus]').inputValue()==='售后中','返回订单清单保留状态筛选');
+  await shot('02-shop-orders');
+  await click('order','SO20261028003');await click('order-tab','售后退款');check((await page.locator('[role=dialog]').innerText()).includes('待商家验收'),'订单详情联动售后单');
+  await click('order-tab','分账记录');await shot('03-order-drawer');
+  await click('order-settlement','SO20261028003');check(await page.locator('form[data-filter=settlement] input[name=q]').inputValue()==='SO20261028003','订单跳转分账携带订单号及商家范围');
+  check(await page.locator('[data-action=order-list-tab][data-id="分账对账"]').getAttribute('class')==='tab active','订单跳转进入订单管理内分账选项卡');
+  check(await page.locator('form[data-filter=settlement] input[name=start]').inputValue()==='2026-10-28','对账联动保留适用时间筛选');
+  await click('expand-split','SO20261028003');check((await page.locator('main').innerText()).includes('第 1 批'),'订单对账可展开分批与接收方明细');
+  await shot('08-shop-settlement');
+  await click('return-order-source');check(await page.locator('[data-action=order-list-tab][data-id="订单清单"]').getAttribute('class')==='tab active','联动返回恢复来源选项卡');check(await page.locator('form[data-filter=orders] select[name=orderStatus]').inputValue()==='售后中','联动返回恢复来源筛选');
+  await click('order-list-tab','分账对账');check(await page.locator('form[data-filter=settlement] select[name=status]').inputValue()==='部分分账','切换保留分账状态筛选');
+  await nav('foundations');await click('entity','F001');
+  for(const t of ['基本资料','资质材料','收款资料','分账数据','操作记录']){await click('tab',t);check((await page.locator('h1').innerText()).includes('春禾公益基金会'),'基金会详情选项卡 '+t);}
+  await click('tab','分账数据');await shot('04-foundation-settlement');
+  await click('org-admin','F001');await page.locator('[name=sms]').fill('000000');await submit();check((await page.locator('.form-error').innerText()).includes('验证码错误'),'敏感操作校验演示短信');await page.locator('[name=sms]').fill('123456');await submit();check(await page.locator('[role=dialog]').count()===0,'正确短信可完成管理员调整');
+  await nav('approvals');await click('review','AP1001');await shot('05-project-review');await click('preview','AP1001');check(await page.locator('.preview-phone').count()===1,'项目审核提供客户端预览');await click('review','AP1001');await click('approve','AP1001');await submit();check(await page.locator('[data-action=review][data-id=AP1001]').count()===0,'审批通过移出待审批清单');
+  await click('review','AP1004');await click('reject','AP1004');await page.locator('[name=reason]').fill('补充活动时间及执行安排');await submit();await click('approval-tab','已处理');check((await page.locator('main').innerText()).includes('已驳回'),'驳回申请进入已处理记录');
+  await nav('foundations');
+  check(await page.locator('.stats').count()===1,'基金会列表展示跨组织汇总');
+  await page.locator('input[name=q]').fill('远山');await page.locator('form[data-filter] button[type=submit]').click();
+  check((await page.locator('.stats').innerText()).includes('¥0.00'),'基金会汇总随组织筛选更新');
+  const foundation=()=>page.frameLocator('#platform-foundation-frame');
+  const foundationClick=async(a,id)=>foundation().locator('[data-action="'+a+'"]'+(id?'[data-id="'+id+'"]':'')).filter({visible:true}).first().click();
+  await click('entity','F002');await click('tab','项目管理');await foundation().locator('h1').waitFor();check((await foundation().locator('#main').innerText()).includes('远山新学期助学计划'),'基金会仅展示本组织项目');
+  check(!(await foundation().locator('#main').innerText()).includes('让乡村孩子有书可读'),'不同基金会项目数据隔离');
+  await click('back-entity');await click('reset-filter','list');await click('entity','F001');await click('tab','项目管理');await foundationClick('project','J001');
+  check(await foundation().locator('[data-action=project-tab]').count()===7,'系统超级管理员可查询项目七个内容选项卡');
+  for(const t of ['基本信息','进展与公示','贡献明细','关联商品','项目活动','公益行动','操作记录']){await foundationClick('project-tab',t);check((await foundation().locator('#main').innerText()).includes('让乡村孩子有书可读'),'项目详情保留所属项目 '+t);}
+  await foundationClick('project-tab','项目活动');await foundationClick('activity','A001');check((await foundation().locator('#main').innerText()).includes('让乡村孩子有书可读'),'项目活动详情展示所属项目');await foundationClick('activity-back');
+  await page.locator('.platform-foundation-toolbar [data-id=项目]').click();await foundationClick('project','J001');await foundationClick('project-tab','公益行动');await shot('10-foundation-project');await foundationClick('activity','A004');check((await foundation().locator('#main').innerText()).includes('春禾公益基金会'),'公益行动详情展示所属基金会');for(const t of ['报名管理','通知记录','操作记录','基本信息']){await foundationClick('activity-tab',t);check(await foundation().locator('h1').count()===1,'系统管理员可查询行动详情 '+t);}await foundationClick('activity-back');
+  await page.locator('.platform-foundation-toolbar [data-id=项目]').click();await foundation().locator('h1').waitFor();check(await foundation().locator('tbody tr').count()===6,'可返回所选基金会项目列表');
+  await nav('associations');await shot('09-organization-summary');await click('entity','A001');await click('tab','商家管理');
+  check(!(await page.locator('main').innerText()).includes('善行公益自营商家'),'商协会所属商家仅含受邀商家');
+  await click('association-merchant','M002');check((await page.locator('main').innerText()).includes('青禾帆布袋'),'商协会进入所选商家全部商品');
+  await click('association-product','P003');check(await page.locator('[data-action=order]').count()===1,'商协会商品层仅展示该商品订单');
+  await shot('11-association-orders');await click('order','SO20261030005');await click('order-tab','分账记录');await click('order-settlement','SO20261030005');await click('return-order-source');
+  check((await page.locator('main').innerText()).includes('青禾帆布袋'),'订单对账联动返回恢复商协会商品层级');
+  await click('association-back');check(await page.locator('[data-action=association-product]').count()===1,'逐层返回恢复商品列表');
+  await click('association-back');check(await page.locator('[data-action=association-merchant]').count()===2,'逐层返回恢复所属商家列表');
+  await nav('universities');await click('entity','U001');await click('tab','分账数据');
+  await page.locator('select[name=merchant]').selectOption('M002');await page.locator('form[data-filter=settlement] button[type=submit]').click();
+  check(await page.locator('[data-action=order]').count()===1,'高校分账数据可按商家筛选');
+  await nav('home');await click('platform-tab','平台客服');check((await page.locator('main').innerText()).includes('平台兜底客服'),'平台运营可查询平台客服');
+  await nav('accounts');await click('account','U1004');await click('account-role','U1004');await page.locator('[name=sms]').fill('123456');await submit();check(await page.locator('[role=dialog]').count()===0,'角色授权可完成');
+  await nav('agreements');await click('agreement-edit','AG-01:v2');await page.locator('[name=content]').fill('新协议正文示例');await submit();check((await page.locator('main').innerText()).includes('历史版本'),'协议发布保留历史版本');await click('agreement','AG-01:v3');check((await page.locator('[role=dialog]').innerText()).includes('新协议正文示例'),'新版本链接展示对应正文');await page.keyboard.press('Escape');
+  await nav('logs');await page.locator('input[name=q]').fill('审批通过');await page.locator('form[data-filter] button[type=submit]').click();check((await page.locator('main').innerText()).includes('让乡村孩子有书可读'),'审批操作记录关联业务对象');
+  await nav('merchants');await page.setViewportSize({width:390,height:844});check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'手机列表无整体横向溢出');await shot('06-mobile-merchants');
+  await click('menu');check(await page.locator('.sidebar.open').count()===1,'手机端可展开导航');await nav('foundations');await click('entity','F001');await click('tab','分账数据');check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'手机组织详情无整体横向溢出');
+  await click('order','SO20261029001');check(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'手机订单详情无整体横向溢出');await shot('07-mobile-order');await page.keyboard.press('Escape');
+  check(errors.length===0,'浏览器运行无异常');
+  fs.writeFileSync(path.join(__dirname,'verification.json'),JSON.stringify({checkedAt:new Date().toISOString(),role:'系统超级管理员',assertions:checks.length,checks,errors},null,2)+'\n');
+  fs.rmSync(path.join(previews,'verification-failure.png'),{force:true});
+  console.log(JSON.stringify({assertions:checks.length,errors,screenshots:11}));
+ }catch(e){await shot('verification-failure').catch(()=>{});throw e;}finally{await browser.close();}
+})().catch(e=>{console.error(e.message);process.exit(1)});
