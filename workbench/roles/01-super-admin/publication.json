@@ -1,0 +1,14 @@
+{
+  "url": "https://zljiaa.github.io/charity-client-preview/workbench/roles/01-super-admin/index.html",
+  "source_repository": "https://github.com/zljiaa/charity-client-prototype",
+  "source_commit": "1641ce3e9218df71f975bd292f7acfd4c1acbdcd",
+  "preview_repository": "https://github.com/zljiaa/charity-client-preview",
+  "preview_commit": "c3704fc22976a3a59c6455908800863d61ed91cd",
+  "pages_status": "built",
+  "public_browser_check": "passed",
+  "new_flow_checks": 59,
+  "existing_flow_checks": 98,
+  "screenshots": 8,
+  "scope": "Shared foundation content pages, editors and previews; platform system permissions and approval integration",
+  "data": "isolated browser local demonstration data"
+}
