@@ -593,7 +593,7 @@ body[data-role] .organization-page .shop-qualification-heading h2{margin:0}
 .settlement-date-error:empty{display:none}
 @media(max-width:800px){.settlement-overview{padding:16px 15px}.settlement-overview-head{margin-bottom:16px}.settlement-datebar{margin-left:0}.settlement-datebar>.btn{padding:5px 11px}.settlement-custom-dates{justify-content:flex-start}.settlement-custom-dates input{max-width:145px}.settlement-date-error{text-align:left}}
 .settlement-scope-filters{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
-.settlement-scope-filters .field{flex:0 1 260px;min-width:180px;margin:0}
+.settlement-scope-filters .field{flex:1 1 180px;min-width:150px;margin:0}
 .settlement-scope-filters .field select{width:100%;min-width:0}
 .settlement-scope-filters>.link{min-height:34px}
 .settlement-trend{padding:20px 22px;margin-bottom:18px;min-width:0}
@@ -609,8 +609,8 @@ body[data-role] .organization-page .shop-qualification-heading h2{margin:0}
 .settlement-chart circle{stroke:#fff;stroke-width:1;cursor:crosshair}
 .settlement-chart circle:hover,.settlement-chart circle:focus{r:5;stroke:var(--series-color);stroke-width:2;outline:none}
 .settlement-chart-empty{font-size:12px;color:var(--muted);padding:8px 0}
-.settlement-tree>.table-wrap>table{min-width:960px}
-.settlement-tree>.table-wrap>table>thead>tr>th:first-child{width:34%}
+.settlement-tree>.table-wrap>table{min-width:1080px}
+.settlement-tree>.table-wrap>table>thead>tr>th:first-child{width:30%}
 .settlement-tree>.table-wrap>table>tbody>tr>td:first-child{white-space:normal;min-width:280px}
 .settlement-tree .settlement-group-row td{background:#f8faf9}
 .settlement-tree .settlement-product-row td{background:#fff}
@@ -725,3 +725,92 @@ body[data-role] .organization-page .shop-donation-inline .phone-body h2{margin-b
 .shop-module-editor [data-shop-edit-section=customer] textarea{min-height:64px;height:64px}
 @media(max-width:600px){.shop-module-editor [data-shop-edit-section=customer] .shop-module-customer-account,.shop-module-editor [data-shop-edit-section=customer]>.form-grid>.form-field{grid-template-columns:minmax(0,1fr);gap:6px}.shop-module-editor .shop-module-customer-account>label,.shop-module-editor [data-shop-edit-section=customer]>.form-grid>.form-field>span{padding-top:0}}
 .shop-donation-inline>p.tiny{margin:0 0 12px}
+
+/* Project contributions and shop → product → order disclosure. */
+.project-report .card-head{gap:16px;flex-wrap:wrap}
+body[data-role="foundation"] .project-report>.card-head{padding-bottom:18px}
+.project-periods{display:inline-flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.project-periods button{padding:7px 17px;border:0;border-right:1px solid var(--line);background:#fff;font-size:12px;color:var(--muted);cursor:pointer}
+.project-periods button:last-child{border-right:0}
+.project-periods button.active{background:#edf5ef;color:var(--green);font-weight:600}
+.project-report-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;padding:0 20px 16px}
+.project-report-stat{display:flex;flex-direction:column;align-items:flex-start;gap:12px;min-width:0;padding:16px;background:#fff;border:1px solid var(--line);border-radius:4px;text-align:left;cursor:pointer}
+.project-report-stat>span{font-size:12px;color:var(--muted)}
+.project-report-stat>strong{font-size:23px;font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums}
+.project-report-stat.active{border-color:#7baa8a;background:#f8fbf8;box-shadow:inset 0 2px var(--green)}
+.project-report-stat.active>strong{color:var(--green)}
+.project-report-trend{padding:0 20px 10px}
+.project-trend-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 6px}
+.project-trend-heading h3{margin:0;font-size:13px;font-weight:500}
+.project-trend-heading>span{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted)}
+.project-trend-heading i{width:7px;height:7px;border-radius:50%;background:var(--green)}
+.project-trend-heading small{margin-left:8px}
+.project-report-chart .project-trend-area{fill:#4c966c;fill-opacity:.08}
+.project-report-chart .project-trend-line{stroke:var(--green);stroke-width:2;fill:none}
+.project-report-chart .project-trend-hit{fill:transparent;stroke:none;cursor:crosshair}
+.project-report-chart .project-trend-dot{fill:var(--green);stroke:#fff;stroke-width:1}
+.project-trend-point{outline:none}
+.project-trend-point .project-trend-tooltip{visibility:hidden;pointer-events:none}
+.project-trend-point:hover .project-trend-tooltip,.project-trend-point:focus .project-trend-tooltip{visibility:visible}
+.project-report-chart .project-trend-tooltip rect{fill:#fff;stroke:var(--line);stroke-width:1}
+.project-report-chart .project-trend-tooltip text{fill:#384b3e;font-size:11px}
+.project-trend-point:hover .project-trend-dot,.project-trend-point:focus .project-trend-dot{r:5}
+.project-report-empty{margin:0 0 5px;text-align:center}
+.project-goods-accordion{padding:0 20px 20px}
+.project-shop-entry{border:1px solid var(--line);border-radius:4px;margin-bottom:12px;overflow:hidden}
+.project-shop-entry:last-child{margin-bottom:0}
+.project-shop-head{display:grid;grid-template-columns:minmax(220px,1fr) repeat(3,minmax(90px,.4fr)) minmax(120px,.5fr) 100px 76px;gap:14px;align-items:center;padding:16px;overflow-x:auto}
+.project-goods-toggle{display:flex;align-items:center;gap:9px;min-width:0;padding:0;border:0;background:transparent;text-align:left;color:inherit;cursor:pointer;font:inherit}
+.project-goods-toggle:focus-visible,.project-report-stat:focus-visible,.project-periods button:focus-visible{outline:2px solid var(--green);outline-offset:3px}
+.project-goods-chevron{flex:none;font-size:24px;color:#929e96;line-height:1;transition:transform .15s}
+.project-goods-toggle[aria-expanded=true]>.project-goods-chevron{transform:rotate(90deg);color:var(--green)}
+.project-goods-toggle.link{font-size:12px;color:var(--green);white-space:nowrap}
+.project-goods-toggle.link .project-goods-chevron{display:none}
+.project-goods-mark{display:grid;place-items:center;flex:none;width:32px;height:32px;border-radius:4px;background:#edf5ef;color:var(--green);font-size:15px}
+.project-goods-title{display:flex;flex-direction:column;gap:6px;min-width:0}
+.project-goods-title strong{font-size:13px;font-weight:600;white-space:normal}
+.project-goods-title small{font-size:11px;color:var(--muted);line-height:1.5;white-space:normal}
+.project-shop-metric{display:flex;flex-direction:column;gap:8px;white-space:nowrap}
+.project-shop-metric>span{font-size:11px;color:var(--muted)}
+.project-shop-metric>strong{font-size:16px;font-weight:500;font-variant-numeric:tabular-nums}
+.project-shop-metric small{font-size:12px;color:var(--muted);margin-left:7px}
+.project-shop-products{border-top:1px solid var(--line);background:#fafcfb;padding:0 16px 16px}
+.project-shop-products[hidden]{display:none}
+.project-shop-products>.table-wrap{border:1px solid var(--line);background:#fff}
+.project-shop-products>.table-wrap>table{min-width:1030px}
+.project-goods-product>td:first-child{min-width:240px;white-space:normal}
+.project-shop-actions{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+.foundation-split-ratio{font-variant-numeric:tabular-nums;white-space:nowrap}
+.split-ratio-note{font-size:12px;color:var(--muted);line-height:1.6;padding:0 20px;margin:8px 0 12px}
+.project-progress-summary .kv-grid{margin-bottom:14px}
+@media(max-width:1050px){.project-report-stats{gap:8px}.project-report-stat{padding:12px}.project-report-stat>strong{font-size:19px}}
+@media(max-width:760px){.project-report-stats{grid-template-columns:repeat(2,minmax(0,1fr));padding:0 14px 14px}.project-report-stat:first-child{grid-column:1/-1}.project-report-trend{padding:0 14px 10px}.project-periods button{padding:7px 12px}.project-goods-accordion{padding:0 14px 14px}.project-shop-head{padding:14px}.project-shop-products{padding:0 12px 12px}}
+
+/* Fit complete certificate pages within the preview viewport. */
+#secondary .dialog.shop-file-preview{display:flex;flex-direction:column;width:min(1100px,100%);height:min(840px,calc(100dvh - 48px));max-height:calc(100dvh - 48px);overflow:hidden}
+.shop-file-preview>.dialog-head,.shop-file-preview>.dialog-foot{flex:none;padding:10px 16px}
+.shop-file-preview>.dialog-head h2{font-size:15px;overflow-wrap:anywhere;min-width:0}
+.shop-file-preview>.dialog-body{display:flex;flex:1;flex-direction:column;min-height:0;overflow:hidden;padding:12px 16px;gap:8px}
+.shop-file-preview .shop-file-image{display:block;flex:1;min-height:0;min-width:0;width:100%;height:0;object-fit:contain}
+.shop-file-preview .shop-file-pdf{display:block;flex:1;min-height:0;width:100%;height:0;border:0}
+.shop-file-preview>.dialog-body>p{flex:none;margin:0}
+@media(max-width:640px){#secondary .dialog.shop-file-preview{height:calc(100dvh - 24px);max-height:calc(100dvh - 24px)}.shop-file-preview>.dialog-body{padding:8px}.shop-file-preview>.dialog-head,.shop-file-preview>.dialog-foot{padding:8px 12px}}
+
+
+/* Foundation settlement overview: primary amounts and compact sales context. */
+.foundation-metrics{margin-bottom:14px}
+.foundation-metrics .settlement-metrics-primary{grid-template-columns:1.2fr repeat(4,minmax(0,1fr));gap:10px;margin-bottom:8px}
+.foundation-metrics .settlement-metric{padding:17px 18px;min-width:0}
+.foundation-metrics .settlement-metric .value{font-size:27px;margin:10px 0 7px;white-space:nowrap}
+.foundation-metrics .settlement-metric .stat-icon{display:none}
+.foundation-metrics .settlement-metric[data-metric="net"]{background:#edf6f1}
+.foundation-metrics .settlement-metric[data-metric="net"] .value{color:var(--green);font-size:30px}
+.foundation-metrics .settlement-metric .foundation-split-ratio{font:inherit;color:inherit}
+.settlement-metrics-secondary{display:flex;align-items:center;flex-wrap:wrap;gap:8px 24px;padding:10px 16px;background:#fff;border-radius:4px;color:var(--muted);font-size:11px}
+.settlement-metrics-secondary>span{display:flex;align-items:baseline;flex-wrap:wrap;gap:7px}
+.settlement-metrics-secondary strong{font-size:14px;color:var(--ink);font-weight:600}
+.settlement-metrics-secondary small{font-size:10px;font-weight:400;color:var(--muted)}
+.settlement-metrics-secondary strong small{margin-left:3px}
+.foundation-metrics+.metrics-note{margin:0 0 16px;font-size:11px}
+@media(max-width:1200px){.foundation-metrics .settlement-metrics-primary{grid-template-columns:repeat(3,minmax(0,1fr))}.foundation-metrics .settlement-metric .value{font-size:25px}}
+@media(max-width:600px){.foundation-metrics .settlement-metrics-primary{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.foundation-metrics .settlement-metric{padding:14px 13px}.foundation-metrics .settlement-metric[data-metric="net"]{grid-column:1/-1}.foundation-metrics .settlement-metric .value{font-size:23px}.foundation-metrics .settlement-metric .note{font-size:10px;line-height:1.5}.settlement-metrics-secondary{padding:10px 13px;gap:7px 18px}}

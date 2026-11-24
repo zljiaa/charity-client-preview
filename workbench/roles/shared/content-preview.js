@@ -1,19 +1,23 @@
 'use strict';
-// Draft-only snapshots sent to the actual client pages.
+// Content snapshots sent to the actual client pages.
 (() => {
  const snapshots=new WeakMap();
  let current=null;
+ let detailObserver=null;
  const readFile=file=>new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve({name:file.name,src:reader.result,type:file.type});reader.onerror=()=>reject(reader.error);reader.readAsDataURL(file);});
  function snapshot(){
   if(!current?.form.isConnected)return null;
   const {form,base,context,media}=current,values=Object.fromEntries(new FormData(form));
   delete values.activityImages;
-  return {...base,...values,...(context.kind==='activity'&&values.format==='线上'?{location:''}:{}),...(context.kind==='activity'&&values.template==='捐款类'?{start:'',end:'',location:''}:{}),...(form.elements.amountModes?window.WorkbenchRules.donationSnapshot(values):{}),carouselMedia:media,images:media.filter(file=>!file.type?.startsWith('video/')),videos:media.filter(file=>file.type?.startsWith('video/')),donate:!!form.elements.donate?.checked,experience:!!form.querySelector('[name=experience]:checked'),skills:!!form.querySelector('[name=skills]:checked'),previewPublishedAt:context.previewPublishedAt,previewKind:context.kind,organization:context.organization,parentProject:context.parentProject,relatedActivities:context.relatedActivities,relatedProducts:context.relatedProducts,raised:context.raised||0,participants:context.participants||0,enrolled:context.enrolled||0};
+  const originalCarousel=new Set((base.carouselMedia||[...(base.images||[]),...(base.videos||[])]).map(file=>file.src));
+  const retained=key=>(base[key]||[]).filter(file=>!originalCarousel.has(file.src));
+  return {...base,...values,...(context.kind==='activity'&&values.format==='线上'?{location:''}:{}),...(context.kind==='activity'&&values.template==='捐款类'?{start:'',end:'',location:''}:{}),...(form.elements.amountModes?window.WorkbenchRules.donationSnapshot(values):{}),carouselMedia:media,images:[...retained('images'),...media.filter(file=>!file.type?.startsWith('video/'))],videos:[...retained('videos'),...media.filter(file=>file.type?.startsWith('video/'))],donate:!!form.elements.donate?.checked,experience:!!form.querySelector('[name=experience]:checked'),skills:!!form.querySelector('[name=skills]:checked'),previewPublishedAt:context.previewPublishedAt,previewKind:context.kind,organization:context.organization,parentProject:context.parentProject,relatedActivities:context.relatedActivities,relatedProducts:context.relatedProducts,raised:context.raised||0,participants:context.participants||0,enrolled:context.enrolled||0};
  }
- function phone(){
+ function phone(data){
   const frame=document.createElement('iframe');
   frame.dataset.contentClientPreview='';frame.title='客户端内容预览';
-  frame.addEventListener('load',()=>{update();send(frame);});
+  if(data){frame.dataset.contentPreviewMode='detail';snapshots.set(frame,structuredClone(data));}
+  frame.addEventListener('load',()=>{if(!data)update();send(frame);});
   frame.src=new URL('../../../play.html?workbenchPreview=1&previewKind=content#project-detail',location.href).href;
   const shell=document.createElement('div');shell.className='pe-client-frame';shell.append(frame);
   return shell;
@@ -21,7 +25,7 @@
  function send(frame){const data=snapshots.get(frame);if(data)frame.contentWindow?.postMessage({type:'workbench:content-preview',content:data},'*');}
  function update(){
   const data=snapshot();if(!data)return;
-  document.querySelectorAll('iframe[data-content-client-preview]').forEach(frame=>{snapshots.set(frame,data);send(frame);});
+  document.querySelectorAll('iframe[data-content-client-preview]:not([data-content-preview-mode=detail])').forEach(frame=>{snapshots.set(frame,data);send(frame);});
  }
  function renderCarousel(state){
   const list=state.form.querySelector('[data-project-carousel-list]');if(!list)return;
@@ -96,10 +100,23 @@
   queueMicrotask(update);
  }
  function mountExpanded(root){root.append(phone());update();}
+ function mountDetail(root,context){
+  detailObserver?.disconnect();detailObserver=null;
+  if(!root||!context)return;
+  const {base,kind,...details}=context;
+  const layout=document.createElement('div');layout.className='content-detail-layout';
+  const aside=document.createElement('aside');aside.className='content-mobile-preview content-detail-preview';aside.setAttribute('aria-label','客户端预览');
+  aside.innerHTML='<div class="pe-mobile-preview-head"><strong>客户端预览</strong></div><div class="content-preview-viewport"></div>';
+  const viewport=aside.querySelector('.content-preview-viewport');
+  viewport.append(phone({...base,...details,previewKind:kind}));
+  root.replaceWith(layout);layout.append(root,aside);
+  detailObserver=new ResizeObserver(()=>{const scale=Math.min(1,viewport.clientWidth/390);viewport.firstElementChild.style.transform='scale('+scale+')';viewport.style.height=Math.ceil(844*scale)+'px';});
+  detailObserver.observe(viewport);
+ }
  window.addEventListener('message',event=>{
   if(event.data?.type!=='client:content-preview-ready')return;
   document.querySelectorAll('iframe[data-content-client-preview]').forEach(frame=>{if(event.source===frame.contentWindow)send(frame);});
  });
  function close(){current?.resizeObserver?.disconnect();current=null;}
- window.WorkbenchContentPreview={mount,mountExpanded,update,snapshot,close};
+ window.WorkbenchContentPreview={mount,mountExpanded,mountDetail,update,snapshot,close};
 })();

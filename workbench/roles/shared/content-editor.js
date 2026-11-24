@@ -9,8 +9,16 @@
   const htmlInput=document.createElement('input');htmlInput.type='hidden';htmlInput.name='bodyHtml';host.append(htmlInput);
   const editor=host.querySelector('[contenteditable]'),files=host.querySelector('[data-rich-files]'),count=host.querySelector('[data-rich-count]');
   let html=base.bodyHtml===undefined?ContentBody.fromText(input.value):base.bodyHtml;
-  // Older activity drafts stored introduction images separately. Bring them into the article once.
-  if(base.bodyHtml===undefined&&base.carouselMedia===undefined&&context.kind!=='project')for(const image of base.images||[]){const img=document.createElement('img');img.src=image.src;img.alt=image.name||'';html+=img.outerHTML;}
+  // Keep legacy article media even when the record also has a separate carousel.
+  if(base.bodyHtml===undefined){
+   const carousel=new Set((base.carouselMedia||[]).map(file=>file.src));
+   for(const file of [...(base.images||[]),...(base.videos||[])]){
+    if(carousel.has(file.src)||context.kind==='project'&&base.carouselMedia===undefined)continue;
+    const node=document.createElement(file.type?.startsWith('video/')?'video':'img');node.src=file.src;
+    if(node.tagName==='VIDEO')node.controls=true;else node.alt=file.name||'';
+    html+=node.outerHTML;
+   }
+  }
   ContentBody.render(editor,html);let range=null,pending=0;
   const toggleCommands=new Set(['bold','italic','underline','insertUnorderedList','insertOrderedList','justifyLeft','justifyCenter']);
   const toggles=[...host.querySelectorAll('[data-rich-command]')].filter(button=>toggleCommands.has(button.dataset.richCommand));
